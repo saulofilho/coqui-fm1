@@ -711,11 +711,11 @@ export function makeSlot(buf, name, root, norm = true) {      // -> {hdr (480 B)
 }
 
 // ------------------------------------------------------------------ the SEQUENCER (patterns: docs/EDITOR_PROTOCOL.md, "A slot" and
-// "A sequence"; GR!MM 2.0, no firmware change): a slot holds the four tracks' sounds and mix (bytes 4-211), their sequences
-// (212-1251: 4 x 260), their step locks (1252-2403: 4 x 288) and their FM patches (2404-2531); the working project
-// (object 9, read only) holds the same sequences and locks at 228 and 1268. Only the sequences and locks are ever changed.
-export const SEQ = { N: 64, LEN: 260, LOCK: 288, SLOT_LEN: 2532, WORK_LEN: 2576, SLOT_SEQ: 212, SLOT_LOCK: 1252, SLOT_END: 2404,
-                     WORK_SEQ: 228, WORK_LOCK: 1268, WORK_TRACKS: 208, WORK_FM: 2440, SLOT_FM: 2404, FM_LEN: 128 };
+// "A sequence"; COQUÍ: a track 56 bytes, its GROOVE): a slot holds the four tracks' sounds and mix (bytes 4-227), their
+// sequences (228-1267: 4 x 260), their step locks (1268-2419: 4 x 288) and their FM patches (2420-2547); the working project
+// (object 9, read only) holds the same sequences and locks at 244 and 1284. Only the sequences and locks are ever changed.
+export const SEQ = { N: 64, LEN: 260, LOCK: 288, SLOT_LEN: 2548, WORK_LEN: 2592, SLOT_SEQ: 228, SLOT_LOCK: 1268, SLOT_END: 2420,
+                     WORK_SEQ: 244, WORK_LOCK: 1284, WORK_TRACKS: 224, WORK_FM: 2456, SLOT_FM: 2420, FM_LEN: 128, TRK: 56 };
 export const DIV_NAMES = ["1/4", "1/4T", "1/8", "1/8T", "1/16", "1/16T", "1/32", "1/32T"];
 export const MODE_NAMES = ["FORWARD", "BACKWARD", "PINGPONG", "RANDOM"];
 export const emptyStep = () => ({ note: 0, chance: 100, ratchet: 1, len: 1, chord: 0, lmask: 0, lv: [0, 0, 0, 0] });
@@ -743,11 +743,11 @@ export function packPattern(p) {                             // a pattern -> { s
   }
   return { seq, lock };
 }
-export function patternsFromSlot(b) {                        // a slot (2532 B) -> four patterns
+export function patternsFromSlot(b) {                        // a slot (2548 B) -> four patterns
   return [0, 1, 2, 3].map((t) => parsePattern(b.subarray(SEQ.SLOT_SEQ + t * SEQ.LEN, SEQ.SLOT_SEQ + (t + 1) * SEQ.LEN),
                                               b.subarray(SEQ.SLOT_LOCK + t * SEQ.LOCK, SEQ.SLOT_LOCK + (t + 1) * SEQ.LOCK)));
 }
-export function patternsFromWork(b) {                        // the working project (object 9, 2576 B) -> four patterns
+export function patternsFromWork(b) {                        // the working project (object 9, 2592 B) -> four patterns
   return [0, 1, 2, 3].map((t) => parsePattern(b.subarray(SEQ.WORK_SEQ + t * SEQ.LEN, SEQ.WORK_SEQ + (t + 1) * SEQ.LEN),
                                               b.subarray(SEQ.WORK_LOCK + t * SEQ.LOCK, SEQ.WORK_LOCK + (t + 1) * SEQ.LOCK)));
 }
@@ -765,7 +765,7 @@ export function slotFromWork(work, pats) {                   // a used slot made
   return slotWithPatterns(o, pats);
 }
 export function slotTrack(slot, t, off = 4) {                // a slot's (off 4) or the working project's (off 0) track t: its source
-  const b = off + t * 52, eng = Math.min(slot[b], 6);
+  const b = off + t * SEQ.TRK, eng = Math.min(slot[b], 6);
   return { eng, k: [0, 1, 2, 3].map((j) => slot[b + 1 + eng * 4 + j]) };
 }
 export function patternFile(pats, extra = {}) {              // the file: a step is [note, chance, ratchet, length, chord byte, lock mask, 4 lock values]

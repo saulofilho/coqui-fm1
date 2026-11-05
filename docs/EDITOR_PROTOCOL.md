@@ -46,7 +46,7 @@ Request: none. Reply, in order:
 | 1 | user sound slots (64) |
 | 1 | a sound's size (64) |
 | 1 | factory sounds (40) |
-| 5 | a slot's size, u35 (2532) |
+| 5 | a slot's size, u35 (2548) |
 | 5 | the settings' size, u35 (170; GR!MM 1.0: 168) |
 | 1 | sample slots (4) |
 | 1 | sample slots in use (holding a good sample) |
@@ -56,9 +56,9 @@ Request: none. Reply, in order:
 | id | Object | Size | GET | PUT |
 | --- | --- | --- | --- | --- |
 | 0 | the settings | 170 (1.0: 168) | yes | yes |
-| 1–4 | slots A–D | 2532 | yes | yes |
+| 1–4 | slots A–D | 2548 | yes | yes |
 | 5–8 | sample slots 1–4 (GR!MM V2) | 512 + the data's length | yes | no |
-| 9 | the working project as it is now (GR!MM V2 rc9) | 2576 | yes | no |
+| 9 | the working project as it is now (GR!MM V2 rc9) | 2592 | yes | no |
 | 10 | the mix's change log (GR!MM V2 rc9) | 772 | yes | no |
 | 16–79 | user sounds 1–64 (id 16 + slot) | 64 | yes | yes |
 | 80–123 | factory sounds 1–44 (id 80 + index, in the firmware's order; GR!MM 1.0: 80–119) | 64 | yes | no |
@@ -174,23 +174,23 @@ SHAPE 0 SINE, 1 TRIANGLE, 2 SAW UP, 3 SAW DOWN, 4 SQUARE, 5 RANDOM, 6 DRIFT.
 **An FM patch (32 bytes):** byte 0 ALGO (0–31) + `0x80` (0: none, the PATCH as built), byte 1 FEEDBACK (0–7), then a
 row of 5 an operator, OP1 first: RATIO (0–31, 0 = 0.5), FINE, LEVEL, ATTACK, DECAY (0–99).
 
-## A slot (2532 bytes)
+## A slot (2548 bytes; COQUÍ: a track 56 bytes)
 
 | Bytes | |
 | --- | --- |
 | 0 | 1 used, 0 empty |
 | 1–3 | 0 |
-| 4–211 | the four tracks, 52 bytes each (below) |
-| 212–1251 | the four sequences, 260 bytes each (below) |
-| 1252–2403 | the four tracks' step locks, 288 bytes each (below) |
-| 2404–2531 | the four tracks' FM patches, 32 bytes each (as in a sound) |
+| 4–227 | the four tracks, 56 bytes each (below) |
+| 228–1267 | the four sequences, 260 bytes each (below) |
+| 1268–2419 | the four tracks' step locks, 288 bytes each (below) |
+| 2420–2547 | the four tracks' FM patches, 32 bytes each (as in a sound) |
 
-**A track (52 bytes):**
+**A track (56 bytes):**
 
 | Byte | |
 | --- | --- |
 | 0 | the source (as in a sound) |
-| 1–28 | every source's four knobs: source s's knob k at 1 + 4 s + k (all seven kept); byte 14 (VOICE's SHIFT, 0–24): bits 5–6 VOICE's TYPE (V2: 0 SOLO, 1 GREGORIAN, 2 NUNS, 3 CATHEDRAL; GR!MM 1.0: 0) |
+| 1–28 | every source's four knobs: source s's knob k at 1 + 4 s + k (all seven kept); source 3 is PERC (KIT, TUNE, DECAY, HUMAN; COQUÍ: GR!MM's VOICE was there) |
 | 29 | 127 − CUTOFF (HOME's filter; 0: open) |
 | 30 | RESONANCE (0–127) |
 | 31 | FX − 100, signed (0: 100 %; −100..100 for 0..200 %) |
@@ -202,6 +202,7 @@ row of 5 an operator, OP1 first: RATIO (0–31, 0 = 0.5), FINE, LEVEL, ATTACK, D
 | 44 | ARP: bit 7 on; bits 0–6 MODE (0 UP, 1 DOWN, 2 UP-DOWN, 3 RANDOM, 4 AS PLAYED, 5 CHORD) |
 | 45–47 | ARP RATE (0–8: 1/1 1/2 1/4 1/8 1/16 1/32 1/4T 1/8T 1/16T), OCTAVES (1–4; bits 5–6: the TAPE SEND's top two bits, V2; GR!MM 1.0: 0), GATE (10–100) |
 | 48–51 | LFO: RATE, DEPTH, DESTINATION, SHAPE |
+| 52–55 | (COQUÍ) GROOVE: STYLE (0 OFF, 1–14), PARTS (0–6), FILL (0 OFF, 1 /2, 2 /4, 3 /8), FEEL + 64 (0–127) |
 
 **A sequence (260 bytes):** byte 0 STEPS (1–64), 1 DIVISION (0–7), 2 SWING (0–127), 3 PLAY MODE; then 64 steps of 4
 bytes: a 24-bit value, little endian (bits 0–6 NOTE, 0 = OFF; 7–13 CHANCE 0–100; 14–15 RATCHET − 1; 16–21 LENGTH − 1),

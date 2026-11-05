@@ -81,6 +81,8 @@ typedef struct {
     volatile int32_t pd_de, pd_dd, pd_pe, pd_pd;   /* (V2) PHASE ENV: DCW ENV (0 .. 127), its DECAY, PITCH ENV (-64 .. 63
                                                  * semitones), its DECAY (0 .. 127: 10 ms .. ~9.7 s, as ENV's DECAY) */
     volatile int32_t glide;                     /* (V2) SOURCE's GLIDE: 0 off, 1 .. 127 (~10 ms .. 2.5 s; vc_gl) */
+    volatile int32_t grv_style, grv_parts, grv_fill, grv_feel;   /* (COQUÍ) a PERC track's GROOVE: STYLE (0 OFF), PARTS,
+                                                 * FILL (OFF, 2, 4, 8 bars), FEEL (-64 .. 63; groove.c) */
 } track_t;
 #define TRK_DEF {ENG_VA, {{0, 10, 90, 30}, {0, 64, 64, 20}, {0, 0, 127, 0}, {0, 64, 64, 30}, {4, 0, 40, 0}, {0, 64, 80, 64}, {0, 0, 60, 0}}, 100, 0, 100, 0, 64, 0, \
                  {22, 85, 127, 89}, 0, 0, 0, 0, 0, 4, 1, 50, 64, 0, 0, 0, 127, 0, 100, 0, 0, {{0}}}

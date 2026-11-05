@@ -60,7 +60,8 @@ static int slot_used(uint32_t s);
 static void arp_tick(uint32_t t, int locked);   /* (arp.c: the arps on the sequencer's clock while it plays) */
 static volatile uint32_t gen_on;                /* (V2) main loop: bit t: track t GENERATEs (gen.c): its pattern plays on
                                                  * unheard */
-static void gen_tick(uint32_t t);               /* (gen.c: a tick of track t, from arp_tick) */
+static void gen_tick(uint32_t t);
+static void groove_tick(uint32_t t, uint32_t tk);   /* (COQUÍ: groove.c: a PERC track's GROOVE on this clock) */               /* (gen.c: a tick of track t, from arp_tick) */
 
 static void seq_clear(void)                     /* main loop: the four sequences empty, 16 steps of 1/16, all OFF */
 {
@@ -237,6 +238,7 @@ static int seq_tick(void)                       /* audio: a tick while playing (
     for (t = 0; t < NT; t++) {
         seq_track_tick(t);
         arp_tick(t, 1);
+        groove_tick(t, seq_ticks - 1u);         /* (COQUÍ: a PERC track's GROOVE) */
     }
     return 0;
 }

@@ -355,6 +355,12 @@ static void ui_slab_make(uint32_t k, slab_t *S)
         }
         else ui_time(S->val, 10u * pow2_q16(clamp(v, 0, 127) * 15));
         return;
+    case PG_GROOVE:                             /* (COQUÍ: STYLE, PARTS, FILL, FEEL: groove.c's words; FEEL's bar from its
+                                                 * middle) */
+        if (k == 3u) S->fill = (uint8_t)((clamp(v, -64, 63) + 64) * 8 / 127);
+        if (k == 0u && v > 0) { put_s(S->val, GR_SHORT[clamp(v, 1, (int32_t)NSTYLE) - 1]); return; }
+        { char t[16]; groove_text(k, v, t); ui_squeeze(S->val, t); }
+        return;
     case PG_SYS3: put_s(S->val, k ? (v ? "ON" : "OFF") : v ? "OFF" : "SOUND"); return;   /* (V2) LATCH: FROM SOUND,
                                                  * ALWAYS OFF; VELOCITY: OFF, ON */
     case PG_SOUNDS:
@@ -1838,6 +1844,40 @@ static void pic_sys3(void)                      /* (V2) SYSTEM 3: LATCH, VELOCIT
     ui_text(PX0 + 6, 144, set.latch & 2u ? "PLAYED (THE KEYS: FULL)" : "VOLUME (AS GR!MM 1.0)", 1, UI_M);
 }
 
+/* (COQUÍ) GROOVE: the style's lanes, a row a drum (its name, then its 32 or 24 steps: the accent X in the accent, x
+ * light, o mid, g dark), the step playing marked; a fill bar's drums in the accent's caption */
+static void pic_groove(void)
+{
+    uint32_t st = (uint32_t)clamp(trk[sel].grv_style, 0, (int32_t)NSTYLE), i, j, lit = seq_on ? grv_lit[sel] : 0u;
+    const gr_style_t *G;
+    char l[24], r[16];
+    if (!st) {
+        ui_caption("GROOVE OFF", 0);
+        ui_text(120 - 4 * 24, 92, "TURN STYLE TO PLAY ALONG", 1, UI_M);
+        return;
+    }
+    G = &GR_STYLE[st - 1u];
+    put_s(put_s(l, "STYLE "), G->name);
+    groove_text(1, trk[sel].grv_parts, r);
+    ui_caption(l, r);
+    for (i = 0; i < GR_LANES && G->l[i].s; i++) {
+        int32_t y = 42 + (int32_t)i * 12, on = (gr_sect(G->l[i].k) & GP_MASK[clamp(trk[sel].grv_parts, 0, GP_N - 1)]) != 0;
+        char nm[10];
+        for (j = 0; j < 9u && PKEY_NAME[G->l[i].k][j]; j++) nm[j] = PKEY_NAME[G->l[i].k][j];
+        nm[j] = 0;
+        ui_text(PX0, y + 1, nm, 1, on ? UI_L : UI_D);
+        for (j = 0; j < G->steps; j++) {
+            int32_t x = 92 + (int32_t)j * (G->steps == 24u ? 6 : 4) + (int32_t)(j / (G->steps / 2u)) * 4;
+            char c = G->l[i].s[j];
+            uint16_t col = c == 'X' ? ui_acc : c == 'x' ? UI_L : c == 'o' ? UI_M : c == 'g' ? UI_D : 0;
+            if (lit == j + 1u) ui_rect(x, y - 1, 3, 11, UI_W);
+            if (col && on) ui_rect(x, y + 1, 3, 7, col);
+            else if (col) ui_rect(x, y + 3, 3, 3, UI_D);
+            else if (!(j & 3u)) ui_rect(x + 1, y + 4, 1, 1, UI_D);
+        }
+    }
+}
+
 static void pic_notbuilt(void) { ui_text(120 - 4 * 13, 96, "NOT BUILT YET", 1, UI_M); }
 
 static void ui_pic_draw(void)
@@ -1848,6 +1888,7 @@ static void ui_pic_draw(void)
     case PG_FMOP: pic_fmop(); return;
     case PG_PDLINE: pic_pdline(); return;
     case PG_PDENV: pic_pdenv(); return;
+    case PG_GROOVE: pic_groove(); return;   /* (COQUÍ) */
     case PG_SOUND:
         switch (sel_eng()) {
         case ENG_VA: pic_va(); return;
@@ -1899,7 +1940,9 @@ static uint32_t ui_pic_key(void)
             UI_H(trk[t].pd_pd), UI_H(trk[t].glide), UI_H(trk[t].fx), UI_H(trk[t].cut),   /* (rc9: HOME's CUT, DRY;
                                                  * MIXER 1's FX0) */
             UI_H(trk[t].ftype), UI_H(trk[t].fpos);
-    UI_H(trk[sel].fm_alg), UI_H(trk[sel].fm_fb), UI_H(fm_op), UI_H(trk[sel].p[ENG_FM][0]), UI_H(perc_lit[sel]);   /* (COQUÍ:
+    UI_H(trk[sel].fm_alg), UI_H(trk[sel].fm_fb), UI_H(fm_op), UI_H(trk[sel].p[ENG_FM][0]), UI_H(perc_lit[sel]);
+    if (page == PG_GROOVE) UI_H(seq_on ? grv_lit[sel] : 0u), UI_H(trk[sel].grv_style), UI_H(trk[sel].grv_parts);   /* (COQUÍ:
+                                                 * the step playing) */   /* (COQUÍ:
                                                  * PERC's last hit) */
     UI_H(trk[sel].latch), UI_H(trk[sel].chord), UI_H(trk[sel].ch_type), UI_H(trk[sel].ch_voice), UI_H(sc_root), UI_H(sc_scale);
     if (PAGES[page].btn == BTN_SEL) UI_H(ch_last), UI_H(ui_oct);

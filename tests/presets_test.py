@@ -136,12 +136,12 @@ env = dict(os.environ, GRIMM_SAVE_OUT=str(OUT / "saves.bin"))
 (OUT / "save.txt").write_text("300 enc 2 -10\n9000 end\n")   # (T1's VOLUME 100 -> 90: an autosave)
 subprocess.run([EXE, str(OUT / "save"), str(OUT / "save.txt")], capture_output=True, check=True, env=env)
 img = bytearray((OUT / "saves.bin").read_bytes())
-WORK_PK = 2576
+WORK_PK = 2592                                  # (COQUÍ: a track 56 bytes, its GROOVE)
 sec = max((1, 2), key=lambda s: int.from_bytes(img[4096 * s + 4:4096 * s + 8], "little")
           if img[4096 * s:4096 * s + 4] == b"CQOB" else -1)   # (the WORK pair's newer copy)
 o = 4096 * sec
 img[o + 12 + 1] = 127                           # T1: VA's WAVE
-img[o + 12 + 4 * 52:o + 12 + 4 * 52 + 16] = b"\xff" * 16   # TAPE, GRAIN, DELAY, SPACE's knobs
+img[o + 12 + 4 * 56:o + 12 + 4 * 56 + 16] = b"\xff" * 16   # TAPE, GRAIN, DELAY, SPACE's knobs
 img[o + 12 + WORK_PK:o + 16 + WORK_PK] = zlib.crc32(bytes(img[o:o + 12 + WORK_PK])).to_bytes(4, "little")
 (OUT / "broken.bin").write_bytes(bytes(img))
 (OUT / "load.txt").write_text("1000 midi 0x90 60 100\n2500 probe\n2600 end\n")

@@ -152,7 +152,7 @@ check(saved === null, `settings: ${saved ? `saved at ${saved.ms} ms` : "not save
   const vf = await VirtualFM1.create(readFileSync("web/dist/coqui.wasm"));
   vf.warmUp();
   const cl = new Client(vf), info = await cl.info(), meta = vf.meta();
-  check(info.proto === 2 && info.sounds === 64 && info.slotSize === 2532 && info.setSize === 170 && info.factory === 44,
+  check(info.proto === 2 && info.sounds === 64 && info.slotSize === 2548 && info.setSize === 170 && info.factory === 44,
         `editor: INFO (GR!MM ${info.firmware}, protocol ${info.proto}, ${info.sounds} sounds, slots ${info.slotSize} B)`);
   check(meta.factory.length === 44 && meta.engines.length === 7 && meta.fmAlg.length === 32, "editor: the page's names and tables from the firmware");
   const f2 = await cl.get(OBJ.FACT + 2, 64);
@@ -239,16 +239,16 @@ check(saved === null, `settings: ${saved ? `saved at ${saved.ms} ms` : "not save
     check(f2[31] === 70 && f2[36] === 33 && f2[45] === 50 && f0[31] === 0 && f0[45] === 0,
           `editor: FX: the tracks' sends read and set (T1 DRIVE ${f2[31]}, T3 DLY ${f2[36]}, T2 TAPE ${f2[45]})`);
     await cl.fxSet(31, 0), await cl.fxSet(36, f0[36]), await cl.fxSet(45, 0);
-    // (rc9) GET only: 9, the working project as it is now (2576 B, as the autosave packs it); 10, the mix's change log
+    // (rc9) GET only: 9, the working project as it is now (2592 B, as the autosave packs it); 10, the mix's change log
     // (entries made, u32; then 64 of 12 B: ms u32, source (2: the editor), page, field (7: TAPE), track, from, to i16)
-    const wk = await cl.get(9, 2576), lg = await cl.get(10, 4 + 64 * 12), lv = new DataView(lg.buffer, lg.byteOffset);
+    const wk = await cl.get(9, 2592), lg = await cl.get(10, 4 + 64 * 12), lv = new DataView(lg.buffer, lg.byteOffset);
     const n = lv.getUint32(0, true), ents = [];
     for (let i = 0; i < Math.min(n, 64); i++) {
       const o = 4 + 12 * i;
       ents.push([lg[o + 4], lg[o + 6], lg[o + 7], lv.getInt16(o + 8, true), lv.getInt16(o + 10, true)]);
     }
     const tp = ents.filter(e => e[0] === 2 && e[1] === 7 && e[2] === 1).map(e => `${e[3]}>${e[4]}`).join(" ");
-    check(wk.length === 2576 && wk[38] === 100 && (wk[52 + 32] >> 3) === 0 && tp === "0>50 50>0",
+    check(wk.length === 2592 && wk[38] === 100 && (wk[56 + 32] >> 3) === 0 && tp === "0>50 50>0",
           `editor: the working project read (2576 B; T1 LEVEL ${wk[38]}), the change log (T2's TAPE by the editor: ${tp})`);
   }
   const fr = 48000, n = 38400, wav = new Uint8Array(44 + n * 4), dv = new DataView(wav.buffer);   // 0.8 s, 16 bit stereo

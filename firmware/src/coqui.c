@@ -865,6 +865,7 @@ static void shed_voice(void)
 }
 
 #include "seq.c"                                /* the sequencer (its notes: note_on, note_off, SRC_SEQ) */
+#include "groove.c"                             /* (COQUÍ) a PERC track's GROOVE: Latin styles on the sequencer's clock */
 
 static void release_keys(uint32_t t)            /* audio: ARP on: the track's key notes released */
 {
@@ -1137,7 +1138,7 @@ static char *put_ms(char *s, uint32_t q16)      /* a time, ms in Q16: "5 ms", "1
  * tap opens its first page, again the next (round); SYSTEM is HOME's, held */
 enum { PG_SOUND, PG_SOURCE, PG_ENV, PG_LFO, PG_SCALE, PG_CHORD, PG_SONG, PG_HOME, PG_MIX1, PG_MIX2, PG_SYSTEM,
        PG_SYS2, PG_SOUNDS, PG_PROJECTS, PG_ARP, PG_GRID, PG_PATTERN, PG_TAPE, PG_GRAIN, PG_DELAY, PG_SPACE, PG_PERFORM,
-       PG_TRACK, PG_FMALGO, PG_FMOP, PG_MASTER, PG_DRIVE, PG_SYS3, PG_PDLINE, PG_PDENV, NPAGE };   /* (the newer last: MIDI LEARN's links keep the pages' numbers they
+       PG_TRACK, PG_FMALGO, PG_FMOP, PG_MASTER, PG_DRIVE, PG_SYS3, PG_PDLINE, PG_PDENV, PG_GROOVE, NPAGE };   /* (the newer last: MIDI LEARN's links keep the pages' numbers they
                                                  * have; in their button's round by pg_key. TRACK: gone in step 25, its
                                                  * number kept: sys_load moves its links onto HOME) */
 typedef struct {
@@ -1184,17 +1185,19 @@ static const page_t PAGES[NPAGE] = {
     {"LINE 2", BTN_EDIT, 1, 1, 1, {"WAVE", "DCW", "RING", "NOISE"}},   /* (V2: a PHASE track's, after SOURCE: phase.c) */
     {"PHASE ENV", BTN_EDIT, 1, 1, 1, {"DCW ENV", "DCW DECAY", "PITCH ENV", "PITCH DECAY"}},   /* (V2: a PHASE track's, after
                                                  * LINE 2) */
+    {"GROOVE", BTN_EDIT, 1, 1, 1, {"STYLE", "PARTS", "FILL", "FEEL"}},   /* (COQUÍ: a PERC track's, after SOUND: groove.c) */
 };
 static uint32_t pg_key(uint32_t p)              /* its place in its button's round */
 {
-    return p == PG_FMALGO ? PG_SOUND * 4u + 1u : p == PG_FMOP ? PG_SOUND * 4u + 2u :
+    return p == PG_FMALGO ? PG_SOUND * 4u + 1u : p == PG_FMOP ? PG_SOUND * 4u + 2u : p == PG_GROOVE ? PG_SOUND * 4u + 1u :
            p == PG_PDLINE ? PG_SOURCE * 4u + 1u : p == PG_PDENV ? PG_SOURCE * 4u + 2u : p * 4u;   /* (V2: PHASE's pages
                                                  * after SOURCE) */
 }
 static int pg_on(uint32_t p)                    /* in its button's round now (FM ALGO, FM OP: an FM track's only) */
 {
     return PAGES[p].cyc && ((p != PG_FMALGO && p != PG_FMOP) || clamp(trk[sel].eng, 0, NENG - 1) == ENG_FM) &&
-           ((p != PG_PDLINE && p != PG_PDENV) || clamp(trk[sel].eng, 0, NENG - 1) == ENG_PHASE);   /* (V2: a PHASE
+           ((p != PG_PDLINE && p != PG_PDENV) || clamp(trk[sel].eng, 0, NENG - 1) == ENG_PHASE) &&
+           (p != PG_GROOVE || clamp(trk[sel].eng, 0, NENG - 1) == ENG_PERC);   /* (COQUÍ: a PERC track's) */   /* (V2: a PHASE
                                                  * track's) */
 }
 static volatile int32_t fm_op;                  /* FM ALGO's OP: the operator FINE and FM OP's knobs edit (0 = OP1) */
@@ -1283,6 +1286,8 @@ static volatile int32_t *knob_param(uint32_t pg, uint32_t k)   /* what KNOB k + 
     case PG_FMOP: return &trk[sel].fmo[clamp(fm_op, 0, 5)][k == 0u ? FO_RATIO : k == 1u ? FO_LEVEL : k == 2u ? FO_ATK : FO_DEC];
     case PG_PDLINE: return k == 0u ? &trk[sel].pd_wav : k == 1u ? &trk[sel].pd_dcw : k == 2u ? &trk[sel].pd_ring :
                            &trk[sel].pd_noise;  /* (V2: PHASE's LINE 2) */
+    case PG_GROOVE: return k == 0u ? &trk[sel].grv_style : k == 1u ? &trk[sel].grv_parts : k == 2u ? &trk[sel].grv_fill :
+                           &trk[sel].grv_feel;   /* (COQUÍ) */
     case PG_PDENV: return k == 0u ? &trk[sel].pd_de : k == 1u ? &trk[sel].pd_dd : k == 2u ? &trk[sel].pd_pe : &trk[sel].pd_pd;
     case PG_TAPE: case PG_GRAIN: case PG_DELAY: case PG_SPACE: return FX[pg - PG_TAPE][k];
     case PG_MASTER: return k == 0u ? &mf_cut : k == 1u ? &mf_res : k == 2u ? &mf_type : &mf_pos;
@@ -1318,6 +1323,7 @@ static int32_t knob_max(uint32_t pg, uint32_t k)
            pg == PG_SONG ? (k == 0u ? SONG_N - 1 : k == 1u ? SONG_END : k == 2u ? 16 : NSONGMODE - 1) :
            pg == PG_SYSTEM ? (k == 0u ? 3 : k == 1u ? MCH_MAX : k == 2u ? 50 : 4) : pg == PG_SYS2 ? (k == 3u ? CK_N - 1 : k ? 1 : 2) :
            pg == PG_SYS3 ? 1 : pg == PG_PDLINE ? (k == 0u ? 8 : k == 1u ? 127 : 1) : pg == PG_PDENV ? (k == 2u ? 63 : 127) :
+           pg == PG_GROOVE ? (k == 0u ? (int32_t)NSTYLE : k == 1u ? GP_N - 1 : k == 2u ? 3 : 63) :
            pg == PG_HOME && k == 3u ? 200 : pg == PG_FMALGO ? (k == 0u ? 31 : k == 1u ? 7 : k == 2u ? 5 : 99) :
            pg == PG_FMOP ? (k ? 99 : 31) : pg == PG_MIX2 ? (k == 1u ? NFTYPE - 1 : k == 2u ? 1 : 127) :
            pg == PG_MASTER ? (k == 2u ? NFTYPE - 1 : k == 3u ? NMPOS - 1 : 127) :
@@ -1329,6 +1335,7 @@ static int32_t knob_min(uint32_t pg, uint32_t k)   /* (RATCHET, LENGTH, STEPS, O
     if (pg == PG_SONG && k == 2u) return 1;     /* (REPEATS from 1) */
     if (pg == PG_SYSTEM && k == 2u) return -50; /* (TUNE: -50 .. +50 cents) */
     if (pg == PG_PDENV && k == 2u) return -64;  /* (V2: PITCH ENV: -64 .. +63 semitones) */
+    if (pg == PG_GROOVE && k == 3u) return -64; /* (COQUÍ: FEEL -64 .. +63) */
     return (pg == PG_GRID && k >= 2u) || (pg == PG_PATTERN && k == 0u);
 }
 static char *lfo_rate_text(char *s, int32_t v, const char *sp)   /* RATE: "20 S", "2.5 S" a cycle; "4.0 HZ" (sp: " ",
@@ -1387,6 +1394,7 @@ static void knob_text(uint32_t pg, uint32_t k, char *s)   /* knob k's value on p
     }
     switch (pg) {
     case PG_SOUND: sel_engine()->text(trk[sel].p[sel_eng()], k, s); return;
+    case PG_GROOVE: groove_text(k, v, s); return;   /* (COQUÍ) */
     case PG_SOURCE:
         if (k == 0u) put_s(s, sel_engine()->name);
         else if (k == 1u) put_s(s, v ? "ON" : "OFF");
@@ -2406,6 +2414,7 @@ static void app_main(void)
         }
         sys_sync();
         if ((page == PG_FMALGO || page == PG_FMOP) && sel_eng() != ENG_FM) page = PG_SOUND;   /* (not FM now: SOUND) */
+        if (page == PG_GROOVE && sel_eng() != ENG_PERC) page = PG_SOUND;   /* (COQUÍ: not PERC now: SOUND) */
         if ((page == PG_PDLINE || page == PG_PDENV) && sel_eng() != ENG_PHASE) page = PG_SOUND;   /* (V2: not PHASE
                                                  * now: SOUND) */
 

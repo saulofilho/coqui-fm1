@@ -34,7 +34,7 @@ from fm1_sample_upload import (BUSY, BUSY_TEXT, CMD_BEGIN, CMD_END, CMD_ERASE, C
 INFO, GET, PUT, TRACK = 20, 21, 22, 23
 BEGIN, DATA, COMMIT, ABORT = 0, 1, 2, 3
 O_SET, O_SLOT, O_SMP, O_SND, O_FACT = 0, 1, 5, 16, 80   # (O_SMP: GR!MM V2, the sample slots 5..8, GET only)
-O_WORK, O_LOG, WORK_LEN, LOG_LEN = 9, 10, 2576, 4 + 64 * 12   # (rc9, GET only: the working project as it is now, the mix's change log)
+O_WORK, O_LOG, WORK_LEN, LOG_LEN = 9, 10, 2592, 4 + 64 * 12   # (rc9, GET only: the working project as it is now, the mix's change log)
 SET_V1, SET_V2 = 168, 169                       # the settings of GR!MM 1.0 (version 1), of V2's version 2: a V2 takes them
 SMP_RC = {1: "bad arguments", 2: "flash erase failed", 3: "flash write failed", 4: "out of order", 5: "header or CRC",
           7: "no flash"}

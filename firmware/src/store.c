@@ -41,7 +41,8 @@
 #define PK_ENG 7u                               /* a track's sources kept (NENG); bytes 29..31 (an eighth source's
                                                  * room till step 23): TRACK's filter and FX, 0 their defaults; 32
                                                  * (V2): the filter's TYPE | POS << 2, 0 (as saved before) LP PRE */
-#define TRK_PK 52u                              /* a track, packed (OBJ_VERS: older versions' were shorter) */
+#define TRK_PK 56u                              /* a track, packed (OBJ_VERS: older versions' were shorter; COQUÍ: 52 + its
+                                                 * GROOVE) */
 #define SEQ_PK 260u                             /* a sequence, packed: 4 + 64 steps x 4 B (the 4th: its chord) */
 #define SEQ_PK5 196u                            /* (version 5 and before: 3 B a step) */
 #define LOCK_PK 288u                            /* a track's step locks: 64 x the four values, 64 x 4 bits which */
@@ -58,10 +59,10 @@
 #define WORK_PK WORK_LEN(TRK_PK, SONG_PK, SEQ_PK, LOCK_PK, FM_ALL, FX2_PK)
 #define OBJ_HDR 12u                             /* magic, the save count, type, version, length */
 #define OBJ_MAGIC 0x424F5143u                   /* "CQOB" (COQUÍ; GR!MM: "GRMK") */
-#define OBJ_VER 8u
-#define SLS_VER 6u                              /* the slots' stream (its layout as version 6's) */
-#define NOBJV 7u
-static const uint16_t OBJ_VERS[NOBJV][7] = {{8, 52, 20, 260, 288, FM_ALL, FX2_PK}, {7, 52, 20, 260, 288, FM_ALL, 0},
+#define OBJ_VER 9u                              /* (COQUÍ: 9, a track's GROOVE) */
+#define SLS_VER 7u                              /* the slots' stream (its layout as version 9's; COQUÍ: 7) */
+#define NOBJV 8u
+static const uint16_t OBJ_VERS[NOBJV][7] = {{9, 56, 20, 260, 288, FM_ALL, FX2_PK}, {8, 52, 20, 260, 288, FM_ALL, FX2_PK}, {7, 52, 20, 260, 288, FM_ALL, 0},
                                             {6, 52, 20, 260, 288, 0, 0}, {5, 52, 20, 196, 0, 0, 0},
                                             {4, 52, 0, 196, 0, 0, 0}, {3, 48, 0, 196, 0, 0, 0},
                                             {2, 44, 0, 196, 0, 0, 0}};   /* the versions loaded, newest first: a
@@ -88,6 +89,8 @@ _Static_assert(SND_N * SND_SIZE <= 4096u && OBJ_HDR + WORK_PK + 4u <= 4096u && 4
  * SHAPE 0 SINE, 1 TRIANGLE, 5 RANDOM, 6 DRIFT */
 #define FSND(c, n, e, k0, k1, k2, k3, a, d, s, r, la, ch, lr, ld, lt, ls)                                              \
     {SND_MAGIC1, c, n, e, k0, k1, k2, k3, a, d, s, r, la, ch, lr, ld, lt, ls}
+#define FSNDP(n, kit, tu, de, hu, sty, fill)     /* (COQUÍ) a PERC kit: KIT, TUNE, DECAY, HUMAN; its GROOVE (TODO, FEEL 0) */ \
+    {SND_MAGIC1, CAT_PERC, n, ENG_PERC, kit, tu, de, hu, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0, sty, 0, fill, 64}
 static const uint8_t SND_FACTORY[][SND_FSIZE] = {
     /* PADS */
     FSND(CAT_PAD, 1, ENG_VA, 2, 70, 62, 20, 105, 100, 110, 100, 1, 0x11, 30, 15, 5, 0),     /* CRYPT PAD */
@@ -101,7 +104,7 @@ static const uint8_t SND_FACTORY[][SND_FSIZE] = {
     FSND(CAT_DRONE, 2, ENG_VA, 1, 5, 52, 30, 100, 90, 120, 110, 1, 0x05, 25, 30, 5, 0),     /* ABYSS */
     FSND(CAT_DRONE, 3, ENG_PHYS, 0, 100, 120, 60, 90, 90, 90, 100, 1, 0x05, 70, 20, 6, 5),  /* IRON LUNG */
     FSND(CAT_DRONE, 4, ENG_WHEEL, 0, 0, 10, 0, 70, 40, 60, 90, 1, 0x05, 15, 0, 1, 0),       /* TOMB HUM */
-    FSND(CAT_PERC, 1, ENG_PERC, 0, 64, 64, 30, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* SALSA DURA */
+    FSNDP(1, 0, 64, 64, 30, 3, 2),   /* SALSA DURA */
     FSND(CAT_DRONE, 6, ENG_FM, 1, 50, 64, 12, 95, 90, 120, 100, 1, 0x05, 40, 0, 0, 0),      /* DEEP WELL */
     /* BELLS & METAL */
     FSND(CAT_BELL, 1, ENG_FM, 0, 64, 90, 10, 0, 120, 0, 110, 0, 0x00, 40, 0, 0, 0),         /* IRON BELL */
@@ -111,10 +114,10 @@ static const uint8_t SND_FACTORY[][SND_FSIZE] = {
     FSND(CAT_BELL, 5, ENG_PHYS, 0, 70, 110, 45, 85, 90, 90, 100, 0, 0x00, 40, 0, 0, 0),     /* BOWED BELL */
     FSND(CAT_BELL, 6, ENG_FM, 0, 110, 20, 30, 0, 70, 0, 70, 0, 0x00, 40, 0, 0, 0),          /* SHRINE */
     /* PERC (COQUÍ: the Latin kits, where GR!MM had its choirs) */
-    FSND(CAT_PERC, 2, ENG_PERC, 1, 64, 64, 15, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* PERREO 2004 */
-    FSND(CAT_PERC, 3, ENG_PERC, 2, 64, 70, 40, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* BOMBA SICA */
-    FSND(CAT_PERC, 4, ENG_PERC, 3, 70, 60, 50, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* PLENA CALLE */
-    FSND(CAT_PERC, 5, ENG_PERC, 3, 64, 55, 25, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* MERENGUE */
+    FSNDP(2, 1, 64, 64, 15, 2, 2),   /* PERREO 2004 */
+    FSNDP(3, 2, 64, 70, 40, 8, 2),   /* BOMBA SICA */
+    FSNDP(4, 3, 70, 60, 50, 10, 2),   /* PLENA CALLE */
+    FSNDP(5, 3, 64, 55, 25, 11, 2),   /* MERENGUE */
     FSND(CAT_PAD, 7, ENG_FM, 2, 70, 64, 40, 85, 90, 115, 95, 0, 0x12, 95, 1, 0, 0),       /* HOLLOW HYMN */
     /* ORGANS & KEYS */
     FSND(CAT_ORGAN, 1, ENG_WHEEL, 15, 0, 20, 10, 10, 20, 75, 60, 0, 0x00, 40, 0, 0, 0),     /* FUNERAL ORGAN */
@@ -136,16 +139,16 @@ static const uint8_t SND_FACTORY[][SND_FSIZE] = {
     FSND(CAT_KEYS, 8, ENG_PHYS, 3, 0, 85, 0, 0, 90, 127, 60, 0, 0x00, 40, 0, 0, 0),         /* LUTE */
     FSND(CAT_KEYS, 9, ENG_PHASE, 3, 0, 40, 4, 80, 90, 70, 80, 0, 0x00, 100, 1, 0, 0),       /* CANDLE */
     /* TEXTURES */
-    FSND(CAT_PERC, 6, ENG_PERC, 3, 60, 70, 45, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* CUMBIA */
+    FSNDP(6, 3, 60, 70, 45, 13, 2),   /* CUMBIA */
     /* (V2) CHOIRS: VOICE's choir TYPEs (real singers' cycles), a clear vowel (O, A), BUZZ (their tone) warm to open, a
      * little BREATH, SHIFT their spread, ATTACK ~0.3 .. 0.45 s, a long RELEASE (~5 .. 8 s), no LFO; chord mode OFF (rc12: a
      * factory sound never switches it on), their CHORD TYPE and VOICING set for it: parallel fifths (organum), minor
      * chords. SPACE isn't a sound's (the project's, the track's REV send): the
      * manual says how to set it */
-    FSND(CAT_PERC, 7, ENG_PERC, 0, 66, 75, 20, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* MAMBO */
-    FSND(CAT_PERC, 8, ENG_PERC, 0, 62, 60, 35, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* BACHATA */
-    FSND(CAT_PERC, 9, ENG_PERC, 1, 60, 80, 5, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* DEMBOW */
-    FSND(CAT_PERC, 10, ENG_PERC, 2, 56, 100, 60, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0),   /* BARRIL LENTO */
+    FSNDP(7, 0, 66, 75, 20, 6, 2),   /* MAMBO */
+    FSNDP(8, 0, 62, 60, 35, 12, 2),   /* BACHATA */
+    FSNDP(9, 1, 60, 80, 5, 1, 2),   /* DEMBOW */
+    FSNDP(10, 2, 56, 100, 60, 9, 2),   /* BARRIL LENTO */
 };
 static const char *const SND_FNAME[] = {
     "CRYPT PAD", "ASH VEIL", "FROZEN HALL", "LAST LIGHT", "MOSS", "BLACK VELVET",
@@ -316,6 +319,9 @@ static void snd_pack(uint8_t *r, uint32_t t, uint32_t cat, uint32_t num)   /* tr
     r[0] = SND_MAGIC, r[1] = (uint8_t)cat, r[2] = (uint8_t)num, r[3] = (uint8_t)e;
     if (e == ENG_FM) pk_fm(r + 18, t);          /* (FM: its own patch) */
     if (e == ENG_PHASE) pd_pk(r + 18, t);       /* (V2: PHASE: its LINE 2 and envelopes there) */
+    if (e == ENG_PERC) r[18] = (uint8_t)clamp(trk[t].grv_style, 0, (int32_t)NSTYLE), r[19] = (uint8_t)clamp(trk[t].grv_parts, 0, GP_N - 1),
+        r[20] = (uint8_t)clamp(trk[t].grv_fill, 0, 3), r[21] = (uint8_t)(clamp(trk[t].grv_feel, -64, 63) + 64);   /* (COQUÍ:
+                                                 * PERC: its GROOVE in the patch's room) */
     for (k = 0; k < 4u; k++) {
         r[4 + k] = (uint8_t)clamp(trk[t].p[e][k], 0, 255);
         r[8 + k] = (uint8_t)clamp(trk[t].env[k], 0, 127);
@@ -361,6 +367,10 @@ static void snd_apply(const uint8_t *r, uint32_t t)   /* a sound record into tra
     lfo_uk(r + 14, t);                          /* (saved before the LFO: zeros, DEPTH 0) */
     if (e == ENG_FM) uk_fm(snd_fname(r) ? 0 : r + 18, t);   /* (FM: its patch; a factory sound's: the PATCH as built) */
     if (e == ENG_PHASE) pd_uk(r + 18, t);       /* (V2: saved before: zeros, all as before) */
+    if (e == ENG_PERC) {                        /* (COQUÍ: its GROOVE; FEEL 0 stored as 64, a record without: 0 0 0 0) */
+        trk[t].grv_style = clamp(r[18], 0, (int32_t)NSTYLE), trk[t].grv_parts = clamp(r[19], 0, GP_N - 1);
+        trk[t].grv_fill = clamp(r[20], 0, 3), trk[t].grv_feel = r[21] ? clamp((int32_t)r[21] - 64, -64, 63) : 0;
+    }
     if ((uint32_t)trk[t].eng != e) {
         trk[t].eng = (int32_t)e;
         nq_put(NQ_RESTART, t, 0);
@@ -458,6 +468,9 @@ static uint8_t *pk_track(uint8_t *q, uint32_t t)
         xb_put(q, &at, (uint32_t)clamp(trk[t].pd_pe, -64, 63) & 127u, 7);   /* (two's complement, 7 bits) */
         xb_put(q, &at, (uint32_t)clamp(trk[t].pd_pd, 0, 127), 7);
     }
+    q[52] = (uint8_t)clamp(trk[t].grv_style, 0, (int32_t)NSTYLE), q[53] = (uint8_t)clamp(trk[t].grv_parts, 0, GP_N - 1);   /*
+                                                 * (COQUÍ: GROOVE) */
+    q[54] = (uint8_t)clamp(trk[t].grv_fill, 0, 3), q[55] = (uint8_t)(clamp(trk[t].grv_feel, -64, 63) + 64);
     return q + TRK_PK;
 }
 static void trk_def(uint8_t *q, uint32_t n)     /* a track's bytes from n on (a save before ARP, before the LFO) as at
@@ -468,6 +481,7 @@ static void trk_def(uint8_t *q, uint32_t n)     /* a track's bytes from n on (a 
     uint32_t k;
     d[44] = (uint8_t)T0.arp_mode, d[45] = (uint8_t)T0.arp_rate, d[46] = (uint8_t)T0.arp_oct, d[47] = (uint8_t)T0.arp_gate;
     d[48] = (uint8_t)T0.lfo_rate, d[49] = 0, d[50] = (uint8_t)T0.lfo_dest, d[51] = (uint8_t)T0.lfo_shape;
+    d[52] = 0, d[53] = 0, d[54] = 0, d[55] = 64;   /* (COQUÍ: GROOVE OFF, TODO, FILL OFF, FEEL 0) */
     for (k = n < 44u ? 44u : n; k < TRK_PK; k++) q[k] = d[k];
 }
 static void restart_track(uint32_t t);          /* (coqui.c: the audio ISR's NQ_RESTART, */
@@ -519,6 +533,9 @@ static const uint8_t *uk_track(const uint8_t *q0, uint32_t t, int isr, uint32_t 
     trk[t].arp_oct = clamp(q[46] & 7u, 1, 4), trk[t].arp_gate = clamp(q[47], 10, 100);
     trk[t].arp = (int32_t)(q[44] >> 7 & 1u);    /* (on or off: arp.c's arp_watch starts it empty) */
     lfo_uk(q + 48, t);
+    trk[t].grv_style = clamp(q[52], 0, (int32_t)NSTYLE), trk[t].grv_parts = clamp(q[53], 0, GP_N - 1);   /* (COQUÍ: GROOVE;
+                                                 * before: trk_def's) */
+    trk[t].grv_fill = clamp(q[54], 0, 3), trk[t].grv_feel = clamp((int32_t)q[55] - 64, -64, 63);
     if (trk[t].eng != (int32_t)q[0] && q[0] < NENG) {
         trk[t].eng = q[0];
         if (isr) restart_track(t);
