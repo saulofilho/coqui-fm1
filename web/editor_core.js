@@ -362,7 +362,7 @@ export function emptyRecord() { return new Uint8Array(SND).fill(0xff); }
 export const isEmpty = (r) => r.every((x) => x === 0xff);
 export function recordOk(r) {
   const dv = new DataView(r.buffer, r.byteOffset, SND);
-  return r[0] === 0x54 && r[1] < 9 && r[3] < 7 && dv.getUint32(60, true) === crc32(r.subarray(0, 60));
+  return r[0] === 0x43 && r[1] < 9 && r[3] < 7 && dv.getUint32(60, true) === crc32(r.subarray(0, 60));   // (COQUÍ's "C"; GR!MM: "T")
 }
 export function parseSound(r, meta) {                        // a record -> a sound (FM: its patch, or the PATCH's as built)
   const fm = r[3] === 1 && r[18] & 0x80 ? r.slice(18, 50) : meta.fmPatches[Math.min(r[4], meta.fmPatches.length - 1)].fm;
@@ -370,7 +370,8 @@ export function parseSound(r, meta) {                        // a record -> a so
   return { cat: r[1], num: r[2], eng: r[3], k: [...r.slice(4, 8)], env: [...r.slice(8, 12)], latch: r[12] & 1, glide: r[12] >> 1,
            chordOn: r[13] >> 7, voicing: (r[13] >> 4) & 7, chord: r[13] & 15, lfo: [...r.slice(14, 18)],
            fm: { alg: fm[0] & 31, fb: fm[1] & 7, ops: [0, 1, 2, 3, 4, 5].map((i) => [...fm.slice(2 + i * 5, 7 + i * 5)]) }, name,
-           vtype: r[3] === 3 && r[18] < 4 ? r[18] : 0,       // (GR!MM 2.0: VOICE's TYPE, byte 18; before: SOLO)
+           vtype: 0,                                         // (GR!MM's VOICE TYPE: COQUÍ has PERC there)
+           grv: r[3] === 3 ? [...r.slice(18, 22)] : null,    // (COQUÍ: a PERC sound's GROOVE: STYLE, PARTS, FILL, FEEL + 64)
            pd: pdOf(r[3] === 6 ? r : null) };                 // (GR!MM 2.0: PHASE's LINE 2 and envelopes, bytes 18 ..)
 }
 function pdOf(r) {                                          // a PHASE sound's LINE 2 (bytes 18 ..: 18 bit 0 RING, bit 1
@@ -401,7 +402,7 @@ export const V2_SOUND_CONTROLS = {
 };
 export function buildRecord(s) {
   const r = new Uint8Array(SND);
-  r[0] = 0x54, r[1] = s.cat, r[2] = Math.max(1, Math.min(99, s.num || 1)), r[3] = s.eng;
+  r[0] = 0x43, r[1] = s.cat, r[2] = Math.max(1, Math.min(99, s.num || 1)), r[3] = s.eng;
   r.set(s.k, 4), r.set(s.env, 8), r[12] = (s.latch ? 1 : 0) | ((s.glide || 0) & 127) << 1;   // (GR!MM 2.0: GLIDE over LATCH)
   r[13] = (s.chordOn ? 0x80 : 0) | (s.voicing & 7) << 4 | (s.chord & 15);
   r.set(s.lfo, 14);
@@ -409,7 +410,7 @@ export function buildRecord(s) {
     r[18] = 0x80 | (s.fm.alg & 31), r[19] = s.fm.fb & 7;
     s.fm.ops.forEach((o, i) => r.set(o, 20 + i * 5));
   }
-  if (s.eng === 3) r[18] = (s.vtype || 0) & 3;               // (GR!MM 2.0: VOICE's TYPE: SOLO, GREGORIAN, NUNS, CATHEDRAL)
+  if (s.eng === 3 && s.grv) r.set(s.grv.slice(0, 4), 18);   // (COQUÍ: PERC's GROOVE, as it came)
   if (s.eng === 6 && s.pd) {                                 // (GR!MM 2.0: PHASE: LINE 2's RING, NOISE, WAVE, DCW)
     r[18] = (s.pd.ring ? 1 : 0) | (s.pd.noise ? 2 : 0);
     r[19] = Math.min(s.pd.wave || 0, 8), r[20] = (s.pd.dcw || 0) & 127;
@@ -542,7 +543,7 @@ export async function restoreSamples(client, smp, progress) {   // the slots as 
 // ------------------------------------------------------------------ a WAV -> a GR!MM sample slot
 // tools/sampleio.py read_any_wav, resample, to_int16, ima_encode, user_slot, note_from_name, and the cut and name of
 // tools/fm1_sample_upload.py, with the order of their float operations kept: the same bytes
-export const SAMPLE = { RATE: 22050, DATA_OFF: 512, HDR_LEN: 480, MAX_DATA: 72 * 1024 - 512, MAGIC: 0x504d5347 };
+export const SAMPLE = { RATE: 22050, DATA_OFF: 512, HDR_LEN: 480, MAX_DATA: 72 * 1024 - 512, MAGIC: 0x50535143 };   // (COQUÍ's "CQSP"; GR!MM: "GSMP")
 SAMPLE.MAX_N = SAMPLE.MAX_DATA * 2;
 const IMA_STEP = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88,
   97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876,

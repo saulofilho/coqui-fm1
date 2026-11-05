@@ -9,7 +9,7 @@ with a HUMAN knob that loosens the hand.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
 
-**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install.
+**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed)
 
 Free and open source (GPL-3.0). Unofficial firmware, not made or endorsed by M-VAVE.
 Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#credits)).
@@ -77,7 +77,10 @@ read GR!MM's or any other firmware's. If anything goes wrong, the Hub's **Rescue
 `hub/` is the [hub](https://saulofilho.github.io/coqui-fm1/) (GitHub Pages, `.github/workflows/pages.yml`). Its sounds and
 data come from the firmware itself: after a change to PERC or GROOVE, `tests/run_host.sh` then
 `python3 tools/gen_hub.py` (needs ffmpeg, or `pip install imageio-ffmpeg`) makes `hub/audio/` and `hub/coqui-data.js`
-again. To look at it: `cd hub && python3 -m http.server`.
+again. The web emulator (`hub/emu/`) is the firmware itself compiled to WebAssembly: `APP_VER=0.1 web/build_web.sh`
+(the [Emscripten SDK](https://emscripten.org) in `~/emsdk`) before `gen_hub.py`, which copies it in;
+`node web/test_web.mjs --emulator` (Node 22 or newer: the SDK's own, `~/emsdk/node/*/bin/node`) checks it against
+host mode, sample for sample and pixel for pixel. To look at it all: `cd hub && python3 -m http.server`.
 
 ## Building
 

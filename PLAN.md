@@ -35,6 +35,10 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    **Hub (feito 2026-11-05):** `hub/` no GitHub Pages (`saulofilho.github.io/coqui-fm1`): cena do boot animada, os 14
    estilos com grade e áudio do próprio firmware, o kit tocável, instalação, controles. `tools/gen_hub.py` refaz dados e
    áudios. Atualizar depois das Fases 4 e 5.
+   **Emulador web (feito 2026-11-05):** `hub/emu/`, o firmware compilado para WebAssembly (`web/build_web.sh`), com a
+   página do GR!MM adaptada (cores, PERC/GROOVE na ajuda, link para o hub). `node web/test_web.mjs --emulator` confere
+   som e telas contra o modo host. **Pendente:** o editor web (`web/editor*`) ainda é o do GR!MM; o formato dos sons e
+   dos slots já foi ajustado no `editor_core.js`, mas a página e seus testes não. Fora do hub até ser adaptado.
 4. **Melódico:** baixo tumbao e piano montuno que seguem o acorde; metais em FM; cuatro dedilhado.
 5. **Mood:** GENERATE vira NOCHE / CALLE / FIESTA (variações sempre na clave). FX: reverb de rua ou quintal,
    delay de dub, "rádio AM" (lo-fi). Telas neon.

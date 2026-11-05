@@ -146,6 +146,12 @@ for (const t of SHOTS) {
 
 // the settings
 check(saved === null, `settings: ${saved ? `saved at ${saved.ms} ms` : "not saved"} (host mode: not saved)`);
+// (COQUÍ) --emulator: the web emulator's checks only (the hub publishes it); the editor's below are GR!MM's, its page not
+// made COQUÍ's yet (PLAN.md)
+if (process.argv.includes("--emulator")) {
+  console.log(fail ? `test_web (emulator): ${fail} failed` : "test_web (emulator): all ok");
+  process.exit(fail ? 1 : 0);
+}
 // the editor
 {
   const eq = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);

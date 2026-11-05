@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Copyright (C) 2026 GR!MM
+// Copyright (C) 2026 GR!MM; COQUÍ changes Copyright (C) 2026 COQUÍ
 // After Felucca's browser page, web/emu/index.html of hugelton/Felucca (Copyright (C) 2026 Leo Kuroshita
 // (@kurogedelic), Hügelton Instruments), which follows X0X's (charlesvestal/fm1-x0x), both GPL-3.0: the panel's
 // layout, the computer keyboard's map, the screen and lights from the worklet, Web MIDI in.
-// The page of GR!MM in the browser: the FM-1's panel, its input to the worklet (worklet.js), the screen and the
+// The page of COQUÍ in the browser (GR!MM's): the FM-1's panel, its input to the worklet (worklet.js), the screen and the
 // lights back, the settings kept in this browser.
 
 // ids as platform.c names them: buttons BTN_* (bit = id), encoders ENC_*, keys bit k = key k (0 = F3 .. 26 = G5)
@@ -345,7 +345,7 @@ async function switchOn() {
           if (m.leds) drawLights(m.leds);
           if (m.settings && !saveSettings(m.settings) && !warned) {
             warned = true;
-            console.warn("GR!MM: this browser does not keep the settings; they last until the page closes.");
+            console.warn("COQUÍ: this browser does not keep the settings; they last until the page closes.");
           }
         }
       };
@@ -355,7 +355,7 @@ async function switchOn() {
     await ac.resume();
     $("start").hidden = true;
     if (ac.sampleRate !== 44100)
-      console.warn(`GR!MM: the browser plays at ${ac.sampleRate} Hz; the pitch is off by ${(1200 * Math.log2(ac.sampleRate / 44100)).toFixed(0)} cents.`);
+      console.warn(`COQUÍ: the browser plays at ${ac.sampleRate} Hz; the pitch is off by ${(1200 * Math.log2(ac.sampleRate / 44100)).toFixed(0)} cents.`);
     syncButtons();
     syncKeys();
     midiOn();
