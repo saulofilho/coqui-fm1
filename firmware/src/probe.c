@@ -39,6 +39,7 @@ static void host_probe(void)
             if (!nm) putchar('-');
         }
         printf(" vty %d vsh %d", (int)trk[sel].vty, (int)trk[sel].p[ENG_PERC][1]);   /* (COQUÍ: PERC's TUNE) */
+        printf(" grv %d,%d,%d,%d", (int)trk[sel].grv_style, (int)trk[sel].grv_parts, (int)trk[sel].grv_fill, (int)trk[sel].grv_feel);   /* (COQUÍ: GROOVE) */
         printf(" dv %d,%d,%d,%d", (int)trk[0].drv, (int)trk[1].drv, (int)trk[2].drv, (int)trk[3].drv);   /* (V2: the
                                                  * tracks' DRIVE sends) */
         printf(" t1mix %d,%d,%d,%d", (int)trk[0].level, (int)trk[0].dly, (int)trk[0].rev, (int)trk[0].grn);

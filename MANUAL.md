@@ -57,11 +57,53 @@ On a PERC track every key is a drum, not a note:
 - HOME's VOLUME, CUTOFF, RESONANCE and FX, the mixer's sends and PAN work on a PERC track as on any other.
 - Played from the keys or the sequencer, a hit goes out over USB-MIDI as a short note (note on, note off at once).
 
-### The factory kits (PRESETS, category PERC)
+## 2. GROOVE: the styles
 
-SALSA DURA, PERREO 2004, BOMBA SICA, PLENA CALLE, MERENGUE, CUMBIA, MAMBO, BACHATA, DEMBOW, BARRIL LENTO.
+![The GROOVE page: SALSA 2-3](docs/screens/groove.png)
 
-## 2. What else is different from GR!MM
+A PERC track can play a whole Latin or Caribbean rhythm by itself while the sequencer runs (**PLAY**), on the same tempo
+and beside the track's own steps. On a PERC track, **EDIT** goes SOUND → **GROOVE** → SOURCE.
+
+| KNOB 1 | KNOB 2 | KNOB 3 | KNOB 4 |
+|---|---|---|---|
+| STYLE | PARTS | FILL | FEEL |
+
+- **STYLE** (OFF, then 14 styles; two bars each):
+
+  | Style | What plays |
+  |---|---|
+  | DEMBOW | reggaetón: the kick on every beat, the snare's dembow, hats, a clap |
+  | PERREO | old-school reggaetón: the 808 boom, the rim's dembow, an open hat |
+  | SALSA 2-3 | son clave 2-3, cowbell, güiro, the conga's tumbao, the bongó's martillo |
+  | SALSA 3-2 | clave 3-2 and the timbal's cáscara (the verse feel) |
+  | SON | son montuno: martillo, maracas, clave, a lighter tumbao |
+  | MAMBO | the mambo bell, the bongo bell, the full tumbao, a hot kick |
+  | CHACHA | cha-cha-chá on the güiro and the bell |
+  | BOMBA SICA | bomba sicá: the cuá's sticks, the buleador, the subidor |
+  | BOMBA YUBA | bomba yubá in 6/8 |
+  | PLENA | the seguidor, the punteador on the off-beats, the requinto |
+  | MERENGUE | the güira, the tambora's stick and hand |
+  | BACHATA | the bongó with its fourth beat, the güira |
+  | CUMBIA | the guacharaca, the llamador, the tambora |
+  | SOCA | four on the floor, the iron, the snare's two and four |
+
+- **PARTS**: which drums play: TODO (all), KIT (kick, snare, hats, clap, rim, boom), MANOS (congas, bongos, timbales,
+  tambora), CAMPANA (bells, clave, wood, güiro, maracas, cáscara), or two of them (KIT+MAN, MAN+CAM, KIT+CAM). Put the
+  same STYLE on two PERC tracks with different PARTS to give the hands and the bells their own level, pan and effects.
+  On the page, the drums PARTS leaves out are dimmed.
+- **FILL**: OFF, or the style's fill in the last bar of every 2, 4 or 8 bars (counted from PLAY).
+- **FEEL**: the swing of the off-beat sixteenths (triplets in YUBA). 0 is the style's own feel (bomba, plena, son and
+  cumbia lean back a little); turn it down for straighter, up for looser.
+
+The page shows the style's drums, a row each, their two bars of strokes (accents in the accent colour), and the step
+playing. **HUMAN** on the SOUND page loosens the groove's hits too. The groove's strokes are a little softer than a key
+struck, so a busy style stays clean. With SEQ MIDI OUT on (SYSTEM 2), its hits go out over USB-MIDI too.
+
+The factory kits (PRESETS, category PERC) each bring a style: SALSA DURA (SALSA 2-3), PERREO 2004 (PERREO), BOMBA SICA,
+PLENA CALLE (PLENA), MERENGUE, CUMBIA, MAMBO, BACHATA, DEMBOW, BARRIL LENTO (BOMBA YUBA), all with FILL every 4 bars.
+A sound saved from a PERC track keeps its GROOVE; so do the project and the slots.
+
+## 3. What else is different from GR!MM
 
 - **Identity**: COQUÍ is `FM-1_923`. Installers and the Firmware Hub tell it apart from GR!MM by this.
 - **Saves**: COQUÍ keeps its own sounds, slots, settings and samples, and never reads another firmware's. Back up

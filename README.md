@@ -21,8 +21,11 @@ Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#cred
 - **Four kits**: SALSA, PERREO (a long low kick, a tight snare), BOMBA (deeper, longer barriles), TIPICO (tighter, higher)
 - **Knobs**: KIT, TUNE (±12 semitones), DECAY (x0.25 .. x4), HUMAN (each hit a little later, softer and off-pitch,
   at random)
-- **10 factory kits**: SALSA DURA, PERREO 2004, BOMBA SICA, PLENA CALLE, MERENGUE, CUMBIA, MAMBO, BACHATA, DEMBOW,
-  BARRIL LENTO
+- **GROOVE**: a PERC track plays a whole style by itself while the sequencer runs: DEMBOW, PERREO, SALSA 2-3, SALSA 3-2,
+  SON, MAMBO, CHACHA, BOMBA SICA, BOMBA YUBA (6/8), PLENA, MERENGUE, BACHATA, CUMBIA, SOCA; with PARTS (the kit, the
+  hands, the bells: split a style over two tracks), FILL (every 2, 4 or 8 bars) and FEEL (swing)
+- **10 factory kits**, each with its groove: SALSA DURA, PERREO 2004, BOMBA SICA, PLENA CALLE, MERENGUE, CUMBIA, MAMBO,
+  BACHATA, DEMBOW, BARRIL LENTO
 - **PERC plays its own hits**: up to 10 at once, never taking the six voices the bass and keys tracks share; a drum
   struck again cuts itself, like a hand on the skin
 - From GR!MM: 4 tracks, six more sources (VA, FM, SAMPLE, WHEEL, PHYS, PHASE), a 64-step sequencer per track with
@@ -48,7 +51,7 @@ MIDI: notes 53 (F3) to 79 (G5) as above; notes outside fold in by two octaves.
 
 | | | |
 |---|---|---|
-| ![Boot](docs/screens/boot.png) | ![PERC](docs/screens/perc.png) | ![Sequencer](docs/screens/seq.png) |
+| ![Boot](docs/screens/boot.png) | ![PERC](docs/screens/perc.png) | ![GROOVE](docs/screens/groove.png) |
 
 ## Install
 
@@ -64,8 +67,8 @@ read GR!MM's or any other firmware's. If anything goes wrong, the Hub's **Rescue
 
 ## Learn it
 
-- [MANUAL.md](MANUAL.md): PERC, and what COQUÍ changes from GR!MM.
-- [PLAN.md](PLAN.md): where COQUÍ is going (patterns, tumbao bass and piano montuno, the mood), in Portuguese.
+- [MANUAL.md](MANUAL.md): PERC, GROOVE, and what COQUÍ changes from GR!MM.
+- [PLAN.md](PLAN.md): where COQUÍ is going (tumbao bass and piano montuno, the mood), in Portuguese.
 
 ## Building
 

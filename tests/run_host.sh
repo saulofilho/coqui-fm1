@@ -57,3 +57,5 @@ python3 tests/samplefix_test.py build/host/coqui
 # COQUÍ: PERC on its own (tests/perc/perc_test.c): every key on every KIT under full scale, heard, ending; its cost
 cc -O2 -Wall -Wno-unused-function -Ifirmware/src -Ifirmware/gen -o build/host/perc_test tests/perc/perc_test.c -lm
 build/host/perc_test build/host/perc_keys.wav | tail -2
+# COQUÍ: a PERC track's GROOVE saved and loaded again (tests/perc/groove_save_test.py)
+python3 tests/perc/groove_save_test.py build/host/coqui

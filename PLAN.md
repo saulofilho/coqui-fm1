@@ -28,8 +28,10 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    tela de boot, paleta, créditos em `LICENSING.md`.
 2. **Motor de percussão:** conga (quinto/conga/tumba: aberto, abafado, slap), bongô, timbal, cowbell, clave,
    güiro, maracas/shaker, cajón, kick e caixa de reggaetón. Custo por voz medido com `fm1_ticks()`.
-3. **Padrões:** biblioteca de grooves com acentos, humanização e variações (fill, break). A clave como
-   referência de fase.
+3. ✅ **Padrões (feita 2026-11-05):** GROOVE (`firmware/src/groove.c`), página nova no EDIT dos tracks PERC: 14 estilos
+   (DEMBOW, PERREO, SALSA 2-3/3-2, SON, MAMBO, CHACHA, BOMBA SICA/YUBA 6/8, PLENA, MERENGUE, BACHATA, CUMBIA, SOCA) de
+   2 compassos com acentos e ghosts; PARTS (KIT, MANOS, CAMPANA), FILL a cada 2/4/8 compassos, FEEL (swing). Toca no
+   relógio do sequenciador. Salvo no projeto (track de 56 bytes, versão 9) e nos sons. Kits de fábrica trazem o estilo.
 4. **Melódico:** baixo tumbao e piano montuno que seguem o acorde; metais em FM; cuatro dedilhado.
 5. **Mood:** GENERATE vira NOCHE / CALLE / FIESTA (variações sempre na clave). FX: reverb de rua ou quintal,
    delay de dub, "rádio AM" (lo-fi). Telas neon.
