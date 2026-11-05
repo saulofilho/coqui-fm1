@@ -1,0 +1,30 @@
+# COQUÍ's hub (hub/) on GitHub Pages: https://saulofilho.github.io/coqui-fm1/
+# Turn it on once: the repository's Settings > Pages > Source: GitHub Actions.
+# The page's sounds and data are made beforehand (tools/gen_hub.py) and committed in hub/: this only publishes them.
+name: hub
+on:
+  push:
+    branches: [main]
+    paths: ["hub/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: hub
+      - id: deployment
+        uses: actions/deploy-pages@v4

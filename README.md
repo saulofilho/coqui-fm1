@@ -9,6 +9,8 @@ with a HUMAN knob that loosens the hand.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
 
+**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install.
+
 Free and open source (GPL-3.0). Unofficial firmware, not made or endorsed by M-VAVE.
 Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#credits)).
 
@@ -69,6 +71,13 @@ read GR!MM's or any other firmware's. If anything goes wrong, the Hub's **Rescue
 
 - [MANUAL.md](MANUAL.md): PERC, GROOVE, and what COQUÍ changes from GR!MM.
 - [PLAN.md](PLAN.md): where COQUÍ is going (tumbao bass and piano montuno, the mood), in Portuguese.
+
+## The hub page
+
+`hub/` is the [hub](https://saulofilho.github.io/coqui-fm1/) (GitHub Pages, `.github/workflows/pages.yml`). Its sounds and
+data come from the firmware itself: after a change to PERC or GROOVE, `tests/run_host.sh` then
+`python3 tools/gen_hub.py` (needs ffmpeg, or `pip install imageio-ffmpeg`) makes `hub/audio/` and `hub/coqui-data.js`
+again. To look at it: `cd hub && python3 -m http.server`.
 
 ## Building
 

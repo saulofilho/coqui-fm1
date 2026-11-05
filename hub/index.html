@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="COQUÍ: free Latin and Caribbean groovebox firmware for the M-VAVE FM-1. Hear the styles, play the kit, install it.">
+<title>COQUÍ Hub</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@400;600&display=swap">
+<style>
+/* One night on the island: the FM-1's own palette (firmware/src/ui.c: noche tropical), a moonlit scene on top, the sea
+ * as the dividers, the clave as the rhythm of the page. A single dark look on purpose. */
+:root {
+  --night: #0c0818;      /* UI_K */
+  --dusk: #2b1d45;       /* UI_D */
+  --mauve: #7d5f98;      /* UI_M */
+  --sand: #f2c49b;       /* UI_L */
+  --cream: #fff3e2;      /* UI_W */
+  --rosa: #ff2d8a;       /* the accents: ROSA, MANGO, MAR, LIMA */
+  --mango: #ff9a1a;
+  --mar: #1cd8c4;
+  --lima: #a6e82e;
+  --panel: #150e27;
+  --f-pix: "Press Start 2P", "Courier New", monospace;
+  --f-body: "Rubik", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--night); color: var(--cream); }
+body { margin: 0; font: 18px/1.55 var(--f-body); }
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 32px max(16px, env(safe-area-inset-left, 0px)) 64px; }
+a { color: var(--sand); }
+a:hover { color: var(--rosa); }
+:focus-visible { outline: 3px solid var(--mango); outline-offset: 3px; }
+h1, h2, h3, .pix, .btn, .tag { font-family: var(--f-pix); font-weight: normal; letter-spacing: .04em; }
+h2 { font-size: 16px; color: var(--rosa); margin: 0 0 6px; line-height: 1.6; }
+h2 + .sub { color: var(--mauve); margin: 0 0 20px; }
+h3 { font-size: 11px; margin: 0; line-height: 1.7; color: var(--cream); }
+p { margin: 0 0 12px; max-width: 64ch; }
+.muted { color: var(--mauve); }
+code { overflow-wrap: anywhere; font-size: .9em; background: var(--panel); padding: 1px 6px; border: 1px solid var(--dusk); }
+
+/* header: the boot scene, the line, the pitch, the ways in */
+header { display: grid; justify-items: center; text-align: center; gap: 16px; }
+.scene { width: min(360px, 88vw); aspect-ratio: 1; image-rendering: pixelated; border: 3px solid var(--dusk); cursor: pointer; background: var(--night); }
+.pitch { font-size: 22px; max-width: 34ch; margin: 0; }
+.hint { font-size: 14px; color: var(--mauve); margin: 0; }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.btn { display: inline-block; text-decoration: none; font-size: 11px; padding: 15px 16px; border: 3px solid var(--sand); color: var(--sand); background: var(--night); cursor: pointer; }
+.btn.main { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+.btn:hover { border-color: var(--mango); color: var(--mango); }
+.btn.main:hover { background: var(--mango); border-color: var(--mango); color: var(--night); }
+
+/* the sea between the sections */
+.sea { height: 26px; margin: 48px 0 32px; background:
+  radial-gradient(circle at 10px -4px, transparent 12px, var(--rosa) 13px, var(--rosa) 15px, transparent 16px) 0 10px / 20px 16px repeat-x,
+  radial-gradient(circle at 10px -4px, transparent 12px, var(--mauve) 13px, var(--mauve) 15px, transparent 16px) 10px 0 / 20px 16px repeat-x; opacity: .9; }
+
+/* the styles */
+.styles { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.style { background: var(--panel); border: 3px solid var(--dusk); padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.style.playing { border-color: var(--rosa); }
+.style .top { display: flex; align-items: center; gap: 12px; }
+.style .top h3 { flex: 1; min-width: 0; }
+.style .bpm { font-family: var(--f-pix); font-size: 8px; color: var(--mauve); display: block; margin-top: 6px; }
+.play { width: 44px; height: 44px; flex: none; border: 3px solid var(--sand); background: var(--night); color: var(--sand); font-family: var(--f-pix); font-size: 13px; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.play:hover { border-color: var(--mango); color: var(--mango); }
+.style.playing .play { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+.style canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; }
+.style .what { font-size: 15px; color: var(--sand); margin: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 14px; color: var(--mauve); margin: 14px 0 0; }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+
+/* the kit: the FM-1's 27 keys */
+.kbd-wrap { overflow-x: auto; padding-bottom: 6px; }
+.kbd { position: relative; height: 210px; min-width: 760px; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.key { position: absolute; top: 0; border: 3px solid var(--night); cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding: 0 2px 10px; text-align: center; font-family: var(--f-pix); font-size: 7px; line-height: 1.5; }
+.key.w { height: 200px; background: var(--sand); color: var(--night); z-index: 1; }
+.key.b { height: 120px; background: var(--dusk); color: var(--sand); z-index: 2; border-color: var(--night); }
+.key.w.hit, .key.w:active { background: var(--rosa); color: #fff; }
+.key.b.hit, .key.b:active { background: var(--mango); color: var(--night); }
+.key span { white-space: pre; }
+.key.b { font-size: 6px; }
+.kbd-note { font-size: 15px; color: var(--mauve); margin-top: 10px; }
+
+/* install, controls */
+ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0 0 16px; display: grid; gap: 14px; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; }
+ol.steps li::before { content: counter(s); font-family: var(--f-pix); font-size: 13px; color: var(--night); background: var(--mar); width: 40px; height: 40px; display: grid; place-items: center; }
+ol.steps p { margin: 8px 0 0; }
+.note { padding: 12px 14px; border-left: 6px solid var(--mango); background: var(--panel); max-width: none; }
+.combos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); border: 3px solid var(--dusk); }
+.combos > div { padding: 10px 14px; border-bottom: 2px solid var(--dusk); min-width: 0; }
+.combos > div:nth-last-child(-n+2) { border-bottom: 0; }
+.combos .k { font-family: var(--f-pix); font-size: 10px; line-height: 1.9; background: var(--panel); color: var(--cream); }
+.combos .k i { font-style: normal; color: var(--mar); }
+ul.new { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+ul.new li { padding-left: 24px; position: relative; max-width: 64ch; }
+ul.new li::before { content: ""; position: absolute; left: 4px; top: 10px; width: 9px; height: 9px; background: var(--lima); }
+footer { margin-top: 56px; display: grid; gap: 12px; font-size: 16px; color: var(--mauve); }
+footer .bye { font-family: var(--f-pix); font-size: 11px; color: var(--rosa); letter-spacing: .1em; }
+@media (max-width: 560px) {
+  body { font-size: 17px; }
+  .pitch { font-size: 19px; }
+  .combos { grid-template-columns: 1fr; }
+  .combos > div:nth-last-child(2) { border-bottom: 2px solid var(--dusk); }
+  .btn { font-size: 10px; padding: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { #sky { display: none; } }
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="wrap">
+
+<header>
+  <canvas id="scene" class="scene" width="240" height="240" role="img" tabindex="0"
+          aria-label="COQUÍ's boot screen: a coquí frog sings under the moon and a palm, fireflies blink over the sea. Press to hear it."></canvas>
+  <p class="pitch">Free firmware that turns the M-VAVE FM-1 into a Latin and Caribbean groovebox.</p>
+  <p class="hint">Tap the coquí.</p>
+  <div class="ctas">
+    <a class="btn main" href="#install">INSTALL</a>
+    <a class="btn" href="#ritmos">LISTEN</a>
+    <a class="btn" href="https://github.com/saulofilho/coqui-fm1/blob/main/MANUAL.md">MANUAL</a>
+  </div>
+</header>
+
+<div class="sea" role="presentation"></div>
+
+<section aria-labelledby="h-ritmos" id="ritmos">
+  <h2 id="h-ritmos">LOS RITMOS</h2>
+  <p class="sub">Fourteen styles a PERC track plays by itself while the sequencer runs. Every sound here is the firmware's own, recorded from it.</p>
+  <div class="styles" id="styles"></div>
+  <div class="legend">
+    <span><i style="background:var(--rosa)"></i>accent</span>
+    <span><i style="background:var(--sand)"></i>played</span>
+    <span><i style="background:var(--mauve)"></i>soft</span>
+    <span><i style="background:var(--dusk)"></i>ghost</span>
+  </div>
+</section>
+
+<div class="sea" role="presentation"></div>
+
+<section aria-labelledby="h-kit" id="kit">
+  <h2 id="h-kit">EL KIT</h2>
+  <p class="sub">On a PERC track every key is a drum: 22 Latin and Caribbean percussion instruments, synthesized, no samples. Play them here.</p>
+  <div class="kbd-wrap"><div class="kbd" id="kbd" role="group" aria-label="The FM-1's 27 keys, F3 to G5"></div></div>
+  <p class="kbd-note">Four kits (SALSA, PERREO, BOMBA, TIPICO) retune them, and the HUMAN knob loosens every hit. These are KIT SALSA's.</p>
+</section>
+
+<div class="sea" role="presentation"></div>
+
+<section aria-labelledby="h-install" id="install">
+  <h2 id="h-install">INSTALL IN A MINUTE</h2>
+  <p class="sub">On a computer, in Chrome or Edge, with the FM-1 on USB.</p>
+  <ol class="steps">
+    <li><p><strong>Back up first.</strong> COQUÍ keeps its own saves and never reads another firmware's: save what you have with your current firmware's own tools before you switch.</p></li>
+    <li><p><strong>Get COQUÍ.</strong> Download <code>coqui.fwsc</code> from the <a href="https://github.com/saulofilho/coqui-fm1/releases">releases</a>. Once COQUÍ is on the <a href="https://thefirmwarehub.com/">FM-1 Firmware Hub</a>, pick it there and press install instead.</p></li>
+    <li><p><strong>Install it</strong> with any FM-1 installer that takes a <code>.fwsc</code> file, or from a terminal: <code>python3 tools/fm1_install.py coqui.fwsc</code>. Switch on, wait for the coquí to sing.</p></li>
+  </ol>
+  <p class="note">Unofficial firmware, not made or supported by M-VAVE. Version 0.1 is in development and not yet tested on every FM-1: install at your own risk. Hold OCT- while switching on for the USB rescue; the Firmware Hub's Rescue page brings back any FM-1, stock firmware included.</p>
+</section>
+
+<div class="sea" role="presentation"></div>
+
+<section aria-labelledby="h-play">
+  <h2 id="h-play">CÓMO SE TOCA</h2>
+  <p class="sub">The few moves that get a groove going.</p>
+  <div class="combos">
+    <div class="k">TURN <i>PRESETS</i></div><div>Load a PERC kit (SALSA DURA, PERREO 2004, BOMBA SICA…): each brings its own style.</div>
+    <div class="k">PRESS <i>PLAY</i></div><div>The style plays, on the tempo SELECT sets on HOME.</div>
+    <div class="k"><i>EDIT</i> &gt; GROOVE</div><div>STYLE, PARTS (the kit, the hands, the bells), FILL every 2, 4 or 8 bars, FEEL (swing).</div>
+    <div class="k"><i>EDIT</i> &gt; SOUND</div><div>KIT, TUNE, DECAY, and HUMAN: each hit a little late, soft, off-pitch.</div>
+    <div class="k">TWO PERC TRACKS</div><div>The same style, PARTS MANOS on one and CAMPANA on the other: their own level, pan and effects.</div>
+    <div class="k">HOLD <i>GLO</i> + WHITE KEYS</div><div>Mute or solo T1–T4.</div>
+    <div class="k">HOLD <i>SAVE</i> + WHITE KEYS</div><div>Recall or save slots A–D (playing: at the next bar).</div>
+  </div>
+</section>
+
+<div class="sea" role="presentation"></div>
+
+<section aria-labelledby="h-new">
+  <h2 id="h-new">NEW IN <span id="ver2">0.1</span></h2>
+  <ul class="new">
+    <li><strong>PERC</strong>: 22 percussion instruments synthesized on the FM-1, on their own pool of hits, never taking the bass's or the keys' voices.</li>
+    <li><strong>GROOVE</strong>: 14 styles with accents, ghost notes and fills, from dembow to bomba yubá in 6/8.</li>
+    <li>Ten factory kits, each with its style. The kit, the groove and the hits are saved in your sounds, slots and project.</li>
+    <li>A noche tropical palette (ROSA, MANGO, MAR, LIMA) and a coquí that sings at start-up.</li>
+    <li>Newer FM-1s (sold since autumn 2026) save and update too.</li>
+  </ul>
+  <p style="margin-top:14px"><a href="https://github.com/saulofilho/coqui-fm1/releases">Release notes and every version</a> · coming next: a tumbao bass, a piano montuno and the night moods (<a href="https://github.com/saulofilho/coqui-fm1/blob/main/PLAN.md">the plan</a>).</p>
+</section>
+
+<footer>
+  <p>COQUÍ is free and open source under GPL-3.0. <a href="https://github.com/saulofilho/coqui-fm1">Source on GitHub</a>.</p>
+  <p>Built on <a href="https://github.com/GRiMMBIENT/grimm">GR!MM</a>, <a href="https://github.com/zvenson/dinghy">Dinghy</a>, <a href="https://github.com/hugelton/Felucca">Felucca</a> and <a href="https://github.com/isod89/sloop-fm1">SLOOP</a>. Full credits in <a href="https://github.com/saulofilho/coqui-fm1/blob/main/LICENSING.md">LICENSING.md</a>. Not affiliated with M-VAVE.</p>
+  <p class="bye">¡WEPA! QUE SIGA LA RUMBA</p>
+</footer>
+</div>
+
+<script src="coqui-data.js"></script>
+<script>
+"use strict";
+const D = window.COQUI;
+const C = { K: "#0c0818", D: "#2b1d45", M: "#7d5f98", L: "#f2c49b", W: "#fff3e2", A: "#ff2d8a", FLY: "#d8ff6a" };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.getElementById("ver2").textContent = D.version;
+
+/* ---- audio: one context, made on the first touch (browsers ask for it) */
+let ac = null;
+const buffers = {};
+function ctx() { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); return ac; }
+async function load(url) {
+  if (!buffers[url]) buffers[url] = fetch(url).then((r) => r.arrayBuffer()).then((b) => ctx().decodeAudioData(b));
+  return buffers[url];
+}
+
+/* ---- the coquí's call: "co" (~1.2 kHz, short), then "quí" (a rising 2 .. 2.5 kHz), as the frog sings it */
+function coqui() {
+  const a = ctx(), t = a.currentTime + 0.02, out = a.createGain();
+  out.gain.value = 0.18; out.connect(a.destination);
+  const note = (t0, f0, f1, d) => {
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + d);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(1, t0 + 0.012); g.gain.setValueAtTime(1, t0 + d - 0.03);
+    g.gain.linearRampToValueAtTime(0, t0 + d); o.connect(g).connect(out); o.start(t0); o.stop(t0 + d + 0.02);
+  };
+  note(t, 1150, 1250, 0.11);
+  note(t + 0.2, 1950, 2500, 0.26);
+}
+
+/* ---- the boot scene (firmware/src/ui.c: ui_boot_draw and its parts, ported) */
+const sc = document.getElementById("scene"), g = sc.getContext("2d");
+const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+let rs = 13;
+const rnd = (n) => { rs = (rs * 9301 + 49297) % 233280; return Math.floor(rs * n / 233280); };
+const STARS = [];
+for (let tries = 0; STARS.length < 22 && tries < 2000; tries++) {
+  const x = 6 + rnd(229), y = 8 + rnd(84);
+  if ((x < 84 && y > 26) || (x > 160 && x < 214 && y < 58) || (x > 76 && x < 232 && y > 40)) continue;
+  if (STARS.some((s) => Math.abs(s.x - x) < 10 && Math.abs(s.y - y) < 10)) continue;
+  STARS.push({ x, y, p: 90 + rnd(110), o: rnd(200) });
+}
+const starState = (s, e) => { const p = (Math.floor(e / 8) + s.o) % s.p; return p < 7 ? 1 : p < 14 ? 2 : p < 28 ? 3 : p < 35 ? 2 : p < 41 ? 1 : 0; };
+const HW = [14, 14, 14, 13, 13, 13, 12, 12, 11, 10, 9, 8, 6, 4];
+const FD = [[-5, -1], [-3, -3], [1, -4], [4, -2], [5, 0]];
+const FROG = ["...lll....lll...", "..lkwkl..lkwkl..", "..lkkkl..lkkkl..", ".llllllllllllll.", "llllllllllllllll",
+              "lldllllllllllldl", ".llllldlldlllll.", "..ll.llllll.ll..", ".ll...llll...ll.", "ll............ll"];
+const FLY_X = [16, 70, 150, 206, 112, 30, 190, 226, 96], FLY_Y = [100, 126, 102, 84, 30, 60, 122, 50, 14];
+const tri = (p, a) => { p %= 48; return Math.trunc((p < 24 ? p : 48 - p) * a / 24) - Math.trunc(a / 2); };
+const WAVE = [1, 1, 2, 2, 3, 3, 3, 3, 2, 2, 1, 1, 0, 0, 0, 0];
+let singFrom = -1e9;
+function sing(e) {
+  const since = e - singFrom;
+  if (since >= 0 && since < 600) return since < 160 ? 1 : since >= 220 ? 2 : 0;
+  if (e < 600) return 0;
+  const p = (e - 600) % 1400;
+  return p < 160 ? 1 : p >= 220 && p < 520 ? 2 : 0;
+}
+function text(s, x, y, size, c) { g.fillStyle = c; g.font = `${size}px "Press Start 2P"`; g.textBaseline = "top"; g.fillText(s, x, y); }
+function draw(e) {
+  R(0, 0, 240, 240, C.K);
+  for (const s of STARS) {
+    const st = starState(s, e);
+    if (st === 3) { R(s.x - 3, s.y, 9, 3, C.L); R(s.x, s.y - 3, 3, 9, C.L); R(s.x, s.y, 3, 3, C.W); }
+    else R(s.x, s.y, 3, 3, st === 2 ? C.L : st === 1 || STARS.indexOf(s) % 3 === 0 ? C.M : C.D);
+  }
+  for (let r = 0; r < 14; r++) {
+    const w = HW[r];
+    R(186 - w, 31 - r, 2 * w, 1, C.W); R(186 - w, 32 + r, 2 * w, 1, C.W);
+    R(186 - w, 31 - r, Math.trunc(w / 3) + 1, 1, C.L); R(186 - w, 32 + r, Math.trunc(w / 3) + 1, 1, C.L);
+  }
+  R(189, 24, 5, 4, C.L); R(180, 36, 4, 3, C.L); R(192, 37, 3, 3, C.L);
+  for (let i = 0; i < 16; i++) { const y = 176 - i * 8, x = 26 + Math.trunc(i * i * 26 / 225); R(x, y, 8, 7, C.D); R(x + 6, y, 2, 7, C.M); }
+  for (const [dx, dy] of FD) for (let t = 1; t <= 9; t++) R(52 + dx * t, 46 + dy * t + Math.trunc(t * t / 3), 5, 4, t > 6 ? C.M : C.D);
+  R(49, 44, 8, 8, C.M);
+  const s = sing(e), col = { l: C.L, k: C.K, w: C.W, d: C.D };
+  FROG.forEach((row, r) => [...row].forEach((ch, c) => { if (ch !== ".") R(88 + c * 4, 48 + r * 4, 4, 4, col[ch]); }));
+  if (s === 1) { R(114, 74, 12, 8, C.W); text("CO", 162, 62, 16, C.L); }
+  if (s === 2) { R(110, 72, 20, 4, C.W); R(106, 76, 28, 10, C.W); R(110, 86, 20, 4, C.W); R(112, 78, 6, 4, C.L); text("QUI!", 162, 62, 16, C.A); }
+  text("COQUI", 60, 112, 24, C.W);
+  R(167, 102, 6, 3, C.A); R(164, 105, 6, 3, C.A);
+  const LT = [0, 12, 24];
+  for (let l = 0; l < 3; l++) {
+    const c = l === 0 ? C.D : l === 1 ? C.M : C.A, ph = Math.floor(e / (150 - l * 40)) + l * 5;
+    for (let x = 0; x < 60; x++) {
+      const y = 146 + LT[l] + 6 - 2 * WAVE[(x + (l & 1 ? 60 - ph % 60 : ph)) & 15];
+      R(x * 4, y, 4, 198 - y, c);
+      if (l === 2) R(x * 4, y, 4, 2, C.W);
+    }
+  }
+  for (let i = 0; i < 9; i++) {
+    const p = (Math.floor(e / 16) + i * 23) % (40 + i * 6), on = p < 14 ? 2 : p < 20 ? 1 : 0;
+    if (!on) continue;
+    const x = FLY_X[i] + tri(Math.floor(e / (70 + i * 9)) + i * 7, 14), y = FLY_Y[i] + tri(Math.floor(e / (95 + i * 5)) + i * 11, 8);
+    if (on === 2) R(x - 1, y - 1, 5, 5, C.D);
+    R(x, y, 3, 3, on === 2 ? C.FLY : C.M);
+  }
+  const line = "FM-1 / RITMO BORICUA / V" + D.version;
+  text(line, 120 - 4 * line.length, 214, 8, C.M);
+}
+let t0 = performance.now();
+function frame(now) { draw(reduced ? 3000 : now - t0); if (!reduced) setTimeout(() => requestAnimationFrame(frame), 55); }
+document.fonts.load('16px "Press Start 2P"').finally(() => requestAnimationFrame(frame));
+const tapFrog = () => { singFrom = performance.now() - t0; coqui(); if (reduced) draw(singFrom + 300); };
+sc.addEventListener("click", tapFrog);
+sc.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); tapFrog(); } });
+
+/* ---- the sky: stars and cucubanos drifting over the page */
+(function sky() {
+  if (reduced) return;
+  const cv = document.getElementById("sky"), x = cv.getContext("2d");
+  let W = 0, H = 0, pts = [];
+  const size = () => {
+    W = cv.width = innerWidth; H = cv.height = innerHeight;
+    pts = Array.from({ length: Math.round(W * H / 26000) }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, fly: i % 5 === 0,
+      ph: Math.random() * 6.3, sp: 0.4 + Math.random() }));
+  };
+  size(); addEventListener("resize", size);
+  (function tick(t) {
+    x.clearRect(0, 0, W, H);
+    for (const p of pts) {
+      const a = 0.5 + 0.5 * Math.sin(t / 900 * p.sp + p.ph);
+      if (p.fly) {
+        const px = p.x + Math.sin(t / 3000 * p.sp + p.ph) * 30, py = p.y + Math.cos(t / 4000 * p.sp + p.ph) * 18;
+        x.globalAlpha = a > 0.7 ? (a - 0.7) / 0.3 : 0; x.fillStyle = C.FLY; x.fillRect(px | 0, py | 0, 3, 3);
+      } else { x.globalAlpha = 0.25 + 0.4 * a; x.fillStyle = a > 0.9 ? C.L : C.M; x.fillRect(p.x | 0, p.y | 0, 2, 2); }
+    }
+    x.globalAlpha = 1;
+    setTimeout(() => requestAnimationFrame(tick), 60);
+  })(0);
+})();
+
+/* ---- the styles: a card each, its two bars drawn as the GROOVE page draws them, its clip with a playhead */
+const WHAT = {
+  "DEMBOW": "Reggaetón: the kick on every beat, the snare's dembow.", "PERREO": "Old-school reggaetón: the 808 boom, the rim, an open hat.",
+  "SALSA 2-3": "Son clave 2-3, cowbell, güiro, the tumbao, the bongó's martillo.", "SALSA 3-2": "Clave 3-2 and the timbal's cáscara.",
+  "SON": "Son montuno: martillo, maracas, a lighter tumbao.", "MAMBO": "The mambo bell over the full tumbao, a hot kick.",
+  "CHACHA": "One, two, cha-cha-chá on the güiro and the bell.", "BOMBA SICA": "The cuá's sticks, the buleador, the subidor.",
+  "BOMBA YUBA": "Bomba yubá in 6/8.", "PLENA": "The seguidor, the punteador's off-beats, the requinto.",
+  "MERENGUE": "The güira's scrape, the tambora's stick and hand.", "BACHATA": "The bongó with its fourth beat, the güira.",
+  "CUMBIA": "The guacharaca, the llamador, the tambora.", "SOCA": "Four on the floor, the iron, the snare's two and four.",
+};
+const VC = { X: C.A, x: C.L, o: C.M, g: C.D };
+const cards = [];
+let playing = null;
+function drawGrid(card, step) {
+  const s = card.s, cv = card.cv, x = cv.getContext("2d"), n = s.lanes.length, cw = s.steps === 24 ? 8 : 6, lx = 66;
+  x.fillStyle = "#150e27"; x.fillRect(0, 0, cv.width, cv.height);
+  x.font = '7px "Press Start 2P"'; x.textBaseline = "top";
+  s.lanes.forEach(([k, str], i) => {
+    const y = 4 + i * 11;
+    x.fillStyle = C.L; x.fillText(D.keys[k].slice(0, 8), 2, y + 1);
+    for (let j = 0; j < s.steps; j++) {
+      const px = lx + j * cw + (j >= s.steps / 2 ? 4 : 0), c = str[j];
+      if (step === j) { x.fillStyle = C.W; x.fillRect(px - 1, y - 1, cw, 10); }
+      if (c !== ".") { x.fillStyle = VC[c]; x.fillRect(px, y, cw - 2, 8); }
+      else if (j % (s.steps === 24 ? 3 : 4) === 0) { x.fillStyle = C.D; x.fillRect(px + 1, y + 3, 2, 2); }
+    }
+  });
+}
+const host = document.getElementById("styles");
+D.styles.forEach((s, i) => {
+  const el = document.createElement("article");
+  el.className = "style";
+  const lx = 66, cw = s.steps === 24 ? 8 : 6;
+  el.innerHTML = `<div class="top"><button class="play" aria-label="Play ${s.name}">&#9654;</button>
+    <h3>${s.name}<span class="bpm">${s.bpm} BPM${s.steps === 24 ? " · 6/8" : ""}</span></h3></div>
+    <canvas width="${lx + s.steps * cw + 6}" height="${6 + s.lanes.length * 11}" aria-hidden="true"></canvas>
+    <p class="what">${WHAT[s.name] || ""}</p>`;
+  host.appendChild(el);
+  const card = { el, s, cv: el.querySelector("canvas"), btn: el.querySelector(".play"), url: `audio/style-${String(i + 1).padStart(2, "0")}.mp3` };
+  cards.push(card);
+  card.btn.addEventListener("click", () => toggle(card));
+});
+document.fonts.load('7px "Press Start 2P"').finally(() => cards.forEach((c) => drawGrid(c, -1)));
+function stop() {
+  if (!playing) return;
+  try { playing.src.stop(); } catch (_) {}
+  playing.card.el.classList.remove("playing"); playing.card.btn.innerHTML = "&#9654;";
+  playing.card.btn.setAttribute("aria-label", "Play " + playing.card.s.name);
+  drawGrid(playing.card, -1); playing = null;
+}
+async function toggle(card) {
+  const was = playing && playing.card === card;
+  stop();
+  if (was) return;
+  const a = ctx(), buf = await load(card.url), src = a.createBufferSource();
+  src.buffer = buf; src.connect(a.destination);
+  const at = a.currentTime + 0.05;
+  src.start(at);
+  playing = { card, src, at };
+  card.el.classList.add("playing"); card.btn.innerHTML = "&#9632;"; card.btn.setAttribute("aria-label", "Stop " + card.s.name);
+  src.onended = () => { if (playing && playing.src === src) stop(); };
+  const s = card.s, per = s.steps === 24 ? 3 : 4;   /* (steps a beat) */
+  (function head() {
+    if (!playing || playing.src !== src) return;
+    const t = a.currentTime - at, step = t < 0 ? -1 : Math.floor(t * s.bpm / 60 * per) % s.steps;
+    drawGrid(card, step);
+    requestAnimationFrame(head);
+  })();
+}
+
+/* ---- the kit: the FM-1's keys F3 .. G5, KIT SALSA's hits (audio/keys.mp3: one after another) */
+const kbd = document.getElementById("kbd");
+const BLACK = new Set([1, 3, 5, 8, 10]);   /* (from F: F# G# A#, C# D#) */
+const keyEls = [];
+const KSHORT = ["KICK", "HAT", "SNARE", "OPEN", "CLAP", "MARAC", "CASCA", "COW", "BELL", "CLAVE", "WOOD", "GÜIRO", "TUMBA",
+                "SLAP", "CONGA", "MUTE", "QUINTO", "GÜIRO\nLONG", "BONGO\nLO", "BONGO\nHI", "SLAP", "TIMB\nLO", "PAILA", "TIMB\nHI", "BOOM", "RIM",
+                "TAMBORA"];   /* (the full names: D.keys, the buttons' labels) */
+let wi = 0;
+const WW = 100 / 16;
+for (let k = 0; k < 27; k++) {
+  const pc = k % 12, b = BLACK.has(pc), el = document.createElement("button");
+  el.className = "key " + (b ? "b" : "w");
+  el.innerHTML = `<span>${KSHORT[k]}</span>`;
+  el.setAttribute("aria-label", D.keys[k]);
+  if (b) { el.style.left = `calc(${wi * WW}% - ${WW * 0.32}%)`; el.style.width = `${WW * 0.64}%`; }
+  else { el.style.left = `${wi * WW}%`; el.style.width = `${WW}%`; wi++; }
+  kbd.appendChild(el); keyEls.push(el);
+  el.addEventListener("pointerdown", (ev) => { ev.preventDefault(); hit(k); });
+  el.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); hit(k); } });
+}
+async function hit(k) {
+  const a = ctx(), buf = await load("audio/keys.mp3"), src = a.createBufferSource();
+  src.buffer = buf; src.connect(a.destination);
+  src.start(0, D.keyAt[k] || k * D.keyLen, D.keyLen);
+  keyEls[k].classList.add("hit"); setTimeout(() => keyEls[k].classList.remove("hit"), 140);
+}
+/* a computer keyboard plays them too: Z S X D C V G B H N J M , then Q 2 W 3 E R 5 T 6 Y 7 U I 9 O */
+const KMAP = "zsxdcvgbhnjm,q2w3er5t6y7ui9o";
+addEventListener("keydown", (ev) => {
+  if (ev.repeat || ev.metaKey || ev.ctrlKey || ev.altKey || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  const k = KMAP.indexOf(ev.key.toLowerCase());
+  if (k >= 0 && k < 27 && document.getElementById("kit").getBoundingClientRect().top < innerHeight) hit(k);
+});
+</script>
+</body>
+</html>
