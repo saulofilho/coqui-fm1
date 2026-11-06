@@ -44,8 +44,10 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    Patches FM BRASS, PIANO, CUATRO, BASS. Os 34 sons do GR!MM viraram sons latinos (categorias LEAD, PAD, BRASS, ORGAN,
    KEYS, BASS, CUERDAS, PERC, OTHER); os de baixo e piano trazem a linha ao carregar. Teste `latin_arp_test.py`; hub
    com "la orquesta" (groove + tumbao + montuno).
-5. **Mood:** GENERATE vira NOCHE / CALLE / FIESTA (variações sempre na clave). FX: reverb de rua ou quintal,
-   delay de dub, "rádio AM" (lo-fi). Telas neon.
+5. ✅ **Mood (feita 2026-11-06):** GENERATE na clave (`gen.c`): NOCHE, CALLE, FIESTA decidem a cada semicolcheia de uma
+   clave 2-3 de 2 compassos, com o peso da posição. AMBIENTE (`amb.c`, última página do FX): cenas SECO, QUINTAL, CALLE,
+   PLAYA, NOCHE, DUB, RADIO AM sobre os efeitos que já existem (sem DSP nem pool novos). HOME: céu, lua, o coquí que
+   canta e dorme, uma conga com chama neon por track. Teste `gen_clave_test.py`.
 6. **Publicação:** testes host e web, teste no FM-1 físico (instalar, sair para outro firmware, retomar uma
    atualização interrompida), release com o workflow `zvenson/fm1-build`, `fmhub.json` (`kinds: ["groove"]`),
    card 240×240.

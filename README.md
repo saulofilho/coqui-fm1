@@ -37,6 +37,8 @@ Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#cred
 - From GR!MM: 4 tracks, six more sources (VA, FM, SAMPLE, WHEEL, PHYS, PHASE), a 64-step sequencer per track with
   swing, chance and ratchets, song mode, arpeggiator, one-key chords, GENERATE, tape, grain, delay and reverb, MIDI in
   and out, MIDI clock, autosave
+- **The mood**: GENERATE in the clave (NOCHE, CALLE, FIESTA), AMBIENTE scenes for the effects (SECO, QUINTAL, CALLE,
+  PLAYA, NOCHE, DUB, RADIO AM), a HOME screen where the coquí sings over a conga a track
 - A **noche tropical** palette (ROSA, MANGO, MAR, LIMA) and a boot screen with the coquí singing
 
 ## The keys on a PERC track
@@ -57,7 +59,8 @@ MIDI: notes 53 (F3) to 79 (G5) as above; notes outside fold in by two octaves.
 
 | | | |
 |---|---|---|
-| ![Boot](docs/screens/boot.png) | ![PERC](docs/screens/perc.png) | ![GROOVE](docs/screens/groove.png) |
+| ![Boot](docs/screens/boot.png) | ![HOME](docs/screens/home.png) | ![GROOVE](docs/screens/groove.png) |
+| ![PERC](docs/screens/perc.png) | ![AMBIENTE](docs/screens/ambiente.png) | ![Sequencer](docs/screens/seq.png) |
 
 ## Install
 
@@ -74,7 +77,7 @@ read GR!MM's or any other firmware's. If anything goes wrong, the Hub's **Rescue
 ## Learn it
 
 - [MANUAL.md](MANUAL.md): PERC, GROOVE, and what COQUÍ changes from GR!MM.
-- [PLAN.md](PLAN.md): where COQUÍ is going (tumbao bass and piano montuno, the mood), in Portuguese.
+- [PLAN.md](PLAN.md): how COQUÍ was made and what is left, in Portuguese.
 
 ## The hub page
 

@@ -145,7 +145,39 @@ GR!MM: the ARP is the project's).
 The FM source has four new patches for them (PATCH on its SOUND page): BRASS, PIANO, CUATRO and BASS, beside BELL,
 ORGAN, SOFT PAD and REED.
 
-## 5. What else is different from GR!MM
+## 5. The mood: HOME, GENERATE, AMBIENTE
+
+![HOME: the coquí sings, the congas burn](docs/screens/home.png)
+
+**HOME** is a night: the stars brighten with the sound, the moon, the coquí (it sings its CO-QUÍ! at a loud hit and now
+and then while you play; ~4 s of silence and it falls asleep, the first sound wakes it), and a conga a track with a
+neon flame as tall as the track's sound.
+
+**GENERATE** (hold FX and tap a black key: F#3 .. C#4 for T1 .. T4, D#4 the MODE) plays in the clave: every note on a
+sixteenth of a 2-3 son clave's two bars (the sequencer's bars while it plays), each sixteenth's chance its place in it:
+
+| MODE | What it plays |
+|---|---|
+| NOCHE | a few long soft notes with slow attacks, on the clave's strokes: a bolero's night |
+| CALLE | a melody walking the scale in eighths, the clave's strokes accented |
+| FIESTA | dense syncopated sixteenths, short, the clave loud: a montuno's |
+
+![AMBIENTE: DUB](docs/screens/ambiente.png)
+
+**AMBIENTE** (FX's last page, after DRIVE): one knob, a scene for all the effects at once, with the tracks' sends where it
+needs them. Each value stays yours to turn on the effects' own pages; the boxes show which effects the scene left on.
+
+| SCENE | What it sets |
+|---|---|
+| SECO | dry: no room, no echo; TAPE, MASTER, DRIVE off; the sends down |
+| QUINTAL | a backyard: a short warm room |
+| CALLE | the street: a slapback echo off the walls, a medium room |
+| PLAYA | the beach: an open bright space, a soft echo |
+| NOCHE | the night: a long dark reverb, a slow echo |
+| DUB | a long dark echo feeding back, a low-pass over it all, the delay sends up |
+| RADIO AM | an old radio: a band-pass, a clipping drive, the tape's wobble and hiss on every track |
+
+## 6. What else is different from GR!MM
 
 - **Identity**: COQUÍ is `FM-1_923`. Installers and the Firmware Hub tell it apart from GR!MM by this.
 - **Saves**: COQUÍ keeps its own sounds, slots, settings and samples, and never reads another firmware's. Back up
@@ -153,4 +185,4 @@ ORGAN, SOFT PAD and REED.
 - **Newer FM-1s**: the flash chip of FM-1s sold since autumn 2026 (UC25HQ80) works too: saves stay, and updates install.
 - **Colours**: SYSTEM's COLOUR offers ROSA (the default), MANGO, MAR and LIMA over a night-blue palette.
 - **Boot**: the coquí sings under the moon for a few seconds.
-- **Not yet changed**: HOME's picture (GR!MM's eye, webs and candles) and the web editor. [PLAN.md](PLAN.md) says what comes next.
+- **Not yet changed**: the web editor (still GR!MM's). [PLAN.md](PLAN.md) says what comes next.

@@ -151,6 +151,7 @@ static int32_t tbuf[NT][VB], dbus[VB], rbus[VB], gbus[VB], vbus[VB];   /* the tr
 static uint32_t xb_used;                        /* audio: bit 0 the DRIVE bus fed this block (a send up, or coming
                                                  * down) */
 #include "master.c"                             /* GR!MM V2: MASTER (a filter on the whole sound), DRIVE (and a limiter) */
+#include "amb.c"                                /* (COQUÍ) AMBIENTE: a scene for the effects, FX's last page */
 static volatile uint32_t trk_mute, trk_solo;    /* main loop: GLO held + white keys 1..4, 5..8 (bit t: track t) */
 enum { PF_REV, PF_ECHO, PF_TAPE, PF_BACK, PF_FDOWN, PF_FUP, PF_STUT, NPF };   /* the FX layer's tricks: G3 .. F4 */
 static volatile uint32_t pf_held;               /* main loop: bit PF_: its key held (FX held + it; perform.c) */
@@ -1138,7 +1139,7 @@ static char *put_ms(char *s, uint32_t q16)      /* a time, ms in Q16: "5 ms", "1
  * tap opens its first page, again the next (round); SYSTEM is HOME's, held */
 enum { PG_SOUND, PG_SOURCE, PG_ENV, PG_LFO, PG_SCALE, PG_CHORD, PG_SONG, PG_HOME, PG_MIX1, PG_MIX2, PG_SYSTEM,
        PG_SYS2, PG_SOUNDS, PG_PROJECTS, PG_ARP, PG_GRID, PG_PATTERN, PG_TAPE, PG_GRAIN, PG_DELAY, PG_SPACE, PG_PERFORM,
-       PG_TRACK, PG_FMALGO, PG_FMOP, PG_MASTER, PG_DRIVE, PG_SYS3, PG_PDLINE, PG_PDENV, PG_GROOVE, NPAGE };   /* (the newer last: MIDI LEARN's links keep the pages' numbers they
+       PG_TRACK, PG_FMALGO, PG_FMOP, PG_MASTER, PG_DRIVE, PG_SYS3, PG_PDLINE, PG_PDENV, PG_GROOVE, PG_AMB, NPAGE };   /* (the newer last: MIDI LEARN's links keep the pages' numbers they
                                                  * have; in their button's round by pg_key. TRACK: gone in step 25, its
                                                  * number kept: sys_load moves its links onto HOME) */
 typedef struct {
@@ -1186,10 +1187,11 @@ static const page_t PAGES[NPAGE] = {
     {"PHASE ENV", BTN_EDIT, 1, 1, 1, {"DCW ENV", "DCW DECAY", "PITCH ENV", "PITCH DECAY"}},   /* (V2: a PHASE track's, after
                                                  * LINE 2) */
     {"GROOVE", BTN_EDIT, 1, 1, 1, {"STYLE", "PARTS", "FILL", "FEEL"}},   /* (COQUÍ: a PERC track's, after SOUND: groove.c) */
+    {"AMBIENTE", BTN_FX, 1, 0, 1, {"SCENE", "", "", ""}},   /* (COQUÍ: FX's last, after DRIVE: amb.c) */
 };
 static uint32_t pg_key(uint32_t p)              /* its place in its button's round */
 {
-    return p == PG_FMALGO ? PG_SOUND * 4u + 1u : p == PG_FMOP ? PG_SOUND * 4u + 2u : p == PG_GROOVE ? PG_SOUND * 4u + 1u :
+    return p == PG_FMALGO ? PG_SOUND * 4u + 1u : p == PG_FMOP ? PG_SOUND * 4u + 2u : p == PG_GROOVE ? PG_SOUND * 4u + 1u : p == PG_AMB ? PG_DRIVE * 4u + 1u :
            p == PG_PDLINE ? PG_SOURCE * 4u + 1u : p == PG_PDENV ? PG_SOURCE * 4u + 2u : p * 4u;   /* (V2: PHASE's pages
                                                  * after SOURCE) */
 }
@@ -1286,6 +1288,7 @@ static volatile int32_t *knob_param(uint32_t pg, uint32_t k)   /* what KNOB k + 
     case PG_FMOP: return &trk[sel].fmo[clamp(fm_op, 0, 5)][k == 0u ? FO_RATIO : k == 1u ? FO_LEVEL : k == 2u ? FO_ATK : FO_DEC];
     case PG_PDLINE: return k == 0u ? &trk[sel].pd_wav : k == 1u ? &trk[sel].pd_dcw : k == 2u ? &trk[sel].pd_ring :
                            &trk[sel].pd_noise;  /* (V2: PHASE's LINE 2) */
+    case PG_AMB: return k == 0u ? &amb_scene : 0;   /* (COQUÍ) */
     case PG_GROOVE: return k == 0u ? &trk[sel].grv_style : k == 1u ? &trk[sel].grv_parts : k == 2u ? &trk[sel].grv_fill :
                            &trk[sel].grv_feel;   /* (COQUÍ) */
     case PG_PDENV: return k == 0u ? &trk[sel].pd_de : k == 1u ? &trk[sel].pd_dd : k == 2u ? &trk[sel].pd_pe : &trk[sel].pd_pd;
@@ -1323,6 +1326,7 @@ static int32_t knob_max(uint32_t pg, uint32_t k)
            pg == PG_SONG ? (k == 0u ? SONG_N - 1 : k == 1u ? SONG_END : k == 2u ? 16 : NSONGMODE - 1) :
            pg == PG_SYSTEM ? (k == 0u ? 3 : k == 1u ? MCH_MAX : k == 2u ? 50 : 4) : pg == PG_SYS2 ? (k == 3u ? CK_N - 1 : k ? 1 : 2) :
            pg == PG_SYS3 ? 1 : pg == PG_PDLINE ? (k == 0u ? 8 : k == 1u ? 127 : 1) : pg == PG_PDENV ? (k == 2u ? 63 : 127) :
+           pg == PG_AMB ? (k == 0u ? NAMB - 1 : 0) :
            pg == PG_GROOVE ? (k == 0u ? (int32_t)NSTYLE : k == 1u ? GP_N - 1 : k == 2u ? 3 : 63) :
            pg == PG_HOME && k == 3u ? 200 : pg == PG_FMALGO ? (k == 0u ? 31 : k == 1u ? 7 : k == 2u ? 5 : 99) :
            pg == PG_FMOP ? (k ? 99 : 31) : pg == PG_MIX2 ? (k == 1u ? NFTYPE - 1 : k == 2u ? 1 : 127) :
@@ -1395,6 +1399,7 @@ static void knob_text(uint32_t pg, uint32_t k, char *s)   /* knob k's value on p
     switch (pg) {
     case PG_SOUND: sel_engine()->text(trk[sel].p[sel_eng()], k, s); return;
     case PG_GROOVE: groove_text(k, v, s); return;   /* (COQUÍ) */
+    case PG_AMB: if (!k) put_s(s, AMB_NAME[clamp(v, 0, NAMB - 1)]); return;
     case PG_SOURCE:
         if (k == 0u) put_s(s, sel_engine()->name);
         else if (k == 1u) put_s(s, v ? "ON" : "OFF");
@@ -1711,6 +1716,7 @@ static void knob_step(uint32_t pg, uint32_t k, int32_t d)   /* KNOB k + 1 on pag
     clog_p(knob_src, pg, p, old);               /* (rc9: a track's mix: logged) */
     if (pg == PG_GRID) grid_put();              /* (the step: its bytes) */
     if (pg == PG_SOUNDS && k == 2u) sv_step(0);   /* (a new TYPE: SLOT onto its list) */
+    if (pg == PG_AMB && k == 0u && *p != old) amb_apply((uint32_t)*p);   /* (COQUÍ: AMBIENTE: the scene, set at once) */
     if (pg == PG_SOUND && k == 0u && sel_eng() == ENG_FM && *p != old) fm_builtin(sel, *p);   /* (PATCH: the built-in one
                                                  * the track's patch now, its edits gone) */
     if (pg == PG_FMALGO && k == 0u && *p != old) nq_put(NQ_RESTART, sel, 0);   /* (ALGO: its notes again, a fade) */

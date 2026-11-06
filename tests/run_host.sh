@@ -61,3 +61,5 @@ build/host/perc_test build/host/perc_keys.wav | tail -2
 python3 tests/perc/groove_save_test.py build/host/coqui
 # COQUÍ: the ARP's Latin lines (TUMBAO .. BACHATA): their notes on their steps, the chord's degrees (tests/perc/latin_arp_test.py)
 python3 tests/perc/latin_arp_test.py build/host/coqui
+# COQUÍ: GENERATE in the clave (NOCHE, CALLE, FIESTA): on the sixteenths, NOCHE on the clave's strokes, busier as it goes
+python3 tests/perc/gen_clave_test.py build/host/coqui

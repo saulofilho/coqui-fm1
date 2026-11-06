@@ -355,6 +355,7 @@ static void ui_slab_make(uint32_t k, slab_t *S)
         }
         else ui_time(S->val, 10u * pow2_q16(clamp(v, 0, 127) * 15));
         return;
+    case PG_AMB: if (!k) ui_squeeze(S->val, AMB_NAME[clamp(v, 0, NAMB - 1)]); return;   /* (COQUÍ: AMBIENTE's SCENE) */
     case PG_GROOVE:                             /* (COQUÍ: STYLE, PARTS, FILL, FEEL: groove.c's words; FEEL's bar from its
                                                  * middle) */
         if (k == 3u) S->fill = (uint8_t)((clamp(v, -64, 63) + 64) * 8 / 127);
@@ -536,20 +537,45 @@ static void ui_eye(int32_t x, int32_t y, int32_t k, int32_t dx, int32_t dy)
     }
 }
 
+/* (COQUÍ) the moon, a disc of radius 14 round (cx, cy), a shadow on its left and three craters; the coquí, 4 px a cell,
+ * at (x, y): sand-coloured, dark eyes with a glint (shut: lids), spots; its throat: 0 in, 1 CO, 2 QUÍ! (the boot's and
+ * HOME's) */
+static void cq_moon(int32_t cx, int32_t cy)
+{
+    static const uint8_t HW[14] = {14, 14, 14, 13, 13, 13, 12, 12, 11, 10, 9, 8, 6, 4};   /* half width a row */
+    int32_t r;
+    for (r = 0; r < 14; r++) {
+        int32_t w = HW[r];
+        ui_rect(cx - w, cy - 1 - r, 2 * w, 1, UI_W), ui_rect(cx - w, cy + r, 2 * w, 1, UI_W);
+        ui_rect(cx - w, cy - 1 - r, w / 3 + 1, 1, UI_L), ui_rect(cx - w, cy + r, w / 3 + 1, 1, UI_L);
+    }
+    ui_rect(cx + 3, cy - 8, 5, 4, UI_L), ui_rect(cx - 6, cy + 4, 4, 3, UI_L), ui_rect(cx + 6, cy + 5, 3, 3, UI_L);
+}
+static void cq_frog(int32_t x, int32_t y, uint32_t sing, int shut)
+{
+    static const char *const FROG[10] = {"...lll....lll...", "..lkwkl..lkwkl..", "..lkkkl..lkkkl..", ".llllllllllllll.",
+                                         "llllllllllllllll", "lldllllllllllldl", ".llllldlldlllll.", "..ll.llllll.ll..",
+                                         ".ll...llll...ll.", "ll............ll"};
+    ui_sprite(x, y, 4, FROG, 10);
+    if (shut) ui_rect(x + 12, y + 4, 12, 8, UI_L), ui_rect(x + 40, y + 4, 12, 8, UI_L),   /* (asleep: the lids) */
+              ui_rect(x + 12, y + 10, 12, 2, UI_M), ui_rect(x + 40, y + 10, 12, 2, UI_M);
+    if (sing == 1u) ui_rect(x + 26, y + 26, 12, 8, UI_W);
+    if (sing == 2u) {
+        ui_rect(x + 22, y + 24, 20, 4, UI_W), ui_rect(x + 18, y + 28, 28, 10, UI_W);
+        ui_rect(x + 22, y + 38, 20, 4, UI_W), ui_rect(x + 24, y + 30, 6, 4, UI_L);
+    }
+}
+
 /* ---- HOME's moving picture (Main), a frame every UI_ANIM_MS while it is shown and the screen lit, from the main loop:
- * what the audio ISR left in vis_pk, vis_lr (its peaks) and the notes on (their pitch). Only what changed is drawn.
- *   candles (V2): a flame only while the track sounds, as tall as its sound now after its LEVEL (as MIXER 1's meter, up
- *   to 10 rows: at once up, down over ~0.5 .. 0.8 s), out when it has faded (muted, LEVEL 0: out), the wick alone; lit,
- *   it dances (a row up or down) and flickers (three shapes, uneven)
- *   stars: the fog's pixels, a few at a time brighten to light and fade back; more of them the louder it is (as 1.0:
- *   its 46, where they were, but none on a web or the eye)
- *   webs (V2): two spider webs in the top corners, their threads' cells a few at a time brighten to light and fade
- *   back (dew catching the light); more of them the louder it is
- *   the eye: its iris goes towards the sound (left, right: the output's balance; up, down: high, low notes), a cell at
- *   a time; it blinks now and then, and at a sudden loud hit; silent ~4 s, it half-closes and drifts (dozing); the
- *   first sound wakes it with a blink */
-#define NSTAR 46u
-#define NWEB (330u + NSTAR)
+ * what the audio ISR left in vis_pk, vis_lr (its peaks) and the notes on. Only what changed is drawn. (COQUÍ: GR!MM's
+ * webs, eye and candles are a night sky, the moon, the coquí and a conga a track)
+ *   congas: a neon flame on each, as tall as the track's sound now after its LEVEL (as MIXER 1's meter, up to 10 rows:
+ *   at once up, down over ~0.5 .. 0.8 s), out when it has faded (muted, LEVEL 0: out); lit, it dances and flickers
+ *   stars: a few at a time brighten to light and fade back; more of them the louder it is
+ *   the coquí: sings its CO .. QUÍ! at a sudden loud hit and now and then while it plays; silent ~4 s, it shuts its
+ *   eyes (asleep); the first sound wakes it, singing */
+#define NSTAR 64u
+#define NWEB NSTAR                              /* (COQUÍ: the stars only, no webs) */
 static uint8_t sk_x[NWEB], sk_y[NWEB], sk_b[NWEB], sk_ph[NWEB], sk_ok;   /* a web's cell, then a star (3 px, from y 27):
                                                  * where, M (a ring, a bright star; else D), its sparkle's frame (0:
                                                  * none) */
@@ -557,9 +583,17 @@ static uint32_t sk_n, sk_nw;                    /* the cells: the webs' and the 
 #define CN_ROWS 10                              /* (V2) a flame's rows at the most (3 px each) */
 #define CN_Y 98                                 /* (V2) a candle's top: 6 px lower than it was, room for the flame under the eye */
 static uint8_t cn_h[NT], cn_s[NT], cn_n[NT];    /* a candle: its flame's rows (0: out), shape, frames to its next shape */
-static int32_t ey_k = 4, ey_dx, ey_dy, ey_tx, ey_ty, ey_bl, ey_doze;   /* the eye: lids, iris, its target, the blink's
-                                                 * frame (0: none), dozing */
-static uint32_t an_rng = 0x2545F491u, an_e[NT], an_avg, an_n, an_sound_t, an_blink_t, an_next, an_drift_t;
+static int32_t ey_doze;                         /* (COQUÍ) the coquí asleep */
+static uint32_t fr_t, fr_shown = 99u;           /* its song's start (fm1_ms; 0: none); what is drawn (its throat, asleep) */
+#define FR_X 88                                 /* (where it sits on HOME) */
+#define FR_Y 30
+static uint32_t fr_sing(void)                   /* its throat now: 0 in, 1 CO, 2 QUÍ! */
+{
+    uint32_t e = fm1_ms - fr_t;
+    if (!fr_t) return 0;
+    return e < 160u ? 1u : e >= 220u && e < 520u ? 2u : 0u;
+}
+static uint32_t an_rng = 0x2545F491u, an_e[NT], an_avg, an_n, an_sound_t, an_next;
 static uint32_t an_rnd(uint32_t n)
 {
     an_rng ^= an_rng << 13, an_rng ^= an_rng >> 17, an_rng ^= an_rng << 5;
@@ -575,7 +609,8 @@ static void sk_add(int32_t x, int32_t y, uint32_t ring)   /* a web's cell (once;
 {
     uint32_t i;
     if (x < 0 || x > 78 || y < 0 || y > 43) return;
-    if ((ring & 2u) && x >= 25 && x <= 54 && y >= 3 && y <= 18) return;   /* (the eye: 80 .. 160, 39 .. 79 px) */
+    if ((ring & 2u) && ((x >= 27 && x <= 52 && y <= 17) || (x >= 5 && x <= 28 && y >= 4 && y <= 11) ||
+                        (x >= 62 && x <= 75 && y <= 14))) return;   /* (COQUÍ: the coquí, its song's words, the moon) */
     for (i = 0; i < sk_n; i++)
         if (sk_x[i] == x && sk_y[i] == y) {
             if (!(ring & 2u)) sk_b[i] |= (uint8_t)ring;
@@ -597,27 +632,12 @@ static void sk_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t rin
         if (e2 <= dx) e += dx, y0 += sy;
     }
 }
-static void sk_init(void)                       /* (V2) the webs: in each top corner five threads out from it, four
-                                                 * rings across them, sagging towards the corner between threads (each web ~150 cells) */
+static void sk_init(void)                       /* (COQUÍ) the stars: the concepts' random, seed 7, none on the coquí,
+                                                 * its words or the moon */
 {
-    static const int8_t TH[5][2] = {{18, 0}, {17, 7}, {13, 13}, {7, 17}, {0, 18}};   /* (0, 22.5 .. 90 degrees) */
-    static const int8_t WEB_R[3] = {6, 11, 16};
-    int32_t c, k, r;
-    sk_n = 0;
-    for (c = 0; c < 2; c++) {
-        int32_t ox = c ? 78 : 0, sx = c ? -1 : 1;
-        for (k = 0; k < 5; k++) sk_line(ox, 0, ox + sx * TH[k][0], TH[k][1], 0);
-        for (r = 0; r < 3; r++)
-            for (k = 0; k < 4; k++) {
-                int32_t x0 = TH[k][0] * WEB_R[r] / 18, y0 = TH[k][1] * WEB_R[r] / 18;
-                int32_t x1 = TH[k + 1][0] * WEB_R[r] / 18, y1 = TH[k + 1][1] * WEB_R[r] / 18;
-                int32_t mx = (x0 + x1) * 9 / 20, my = (y0 + y1) * 9 / 20;   /* (the sag: the middle a tenth in) */
-                sk_line(ox + sx * x0, y0, ox + sx * mx, my, 1);
-                sk_line(ox + sx * mx, my, ox + sx * x1, y1, 1);
-            }
-    }
-    sk_nw = sk_n;
-    ui_rnd_s = 7;                               /* (the stars as 1.0 had them: the concepts' random, seed 7) */
+    int32_t k;
+    sk_n = sk_nw = 0;
+    ui_rnd_s = 7;
     for (k = 0; k < (int32_t)NSTAR; k++) {
         int32_t x = (int32_t)ui_rnd(79), y = (int32_t)ui_rnd(44);
         sk_add(x, y, 2u | (ui_rnd(100) >= 65u));
@@ -641,20 +661,23 @@ static void ui_flame(int32_t x, int32_t y, int32_t n, uint32_t s)   /* (V2) a fl
                     ui_col((w > 2 && c && c < w - 1) || (w == 2 && !c && i == n - 1 && n > 2) ? 'l' : 'a'));
     }
 }
-static void pic_home(void)                      /* Main: the webs, the stars, the eye, a candle a track */
+static void pic_home(void)                      /* Main (COQUÍ): the stars, the moon, the coquí, a conga a track */
 {
-    static const char *const BODY[9] = {"...m..", ".wlll.", ".wlll.", ".llll.", ".llll.", "lllll.", ".llll.", ".llll.",
+    static const char *const BODY[9] = {"aaaaaa", "wllllm", ".llml.", ".llml.", ".llml.", ".llml.", "..lm..", ".lllm.",
                                         "dddddd"};
-    uint32_t i;
+    uint32_t i, sing = fr_sing();
     int32_t t;
     if (!sk_ok) sk_init();
     for (i = 0; i < sk_n; i++) ui_rect(sk_x[i] * 3, 27 + sk_y[i] * 3, 3, 3, sk_col(i));
-    ui_eye(80, 39, ey_k, ey_dx, ey_dy);
-    for (t = 0; t < (int32_t)NT; t++) {         /* four candles, 27 px apart, centred */
+    cq_moon(206, 48);
+    cq_frog(FR_X, FR_Y, sing, ey_doze);
+    if (sing == 1u) ui_text(36, 44, "CO", 2, UI_L);
+    if (sing == 2u) ui_text(20, 44, "QUI!", 2, ui_acc);
+    for (t = 0; t < (int32_t)NT; t++) {         /* four congas, 45 px apart, centred */
         int32_t x = 43 + t * 45, y = CN_Y, h = cn_h[t];
         char lab[2] = {(char)('1' + t), 0};
         if (!ui_in(x, y + 12 - 3 * CN_ROWS, 18, 3 * CN_ROWS + 43)) continue;
-        if (h) ui_flame(x, y + 9, h, cn_s[t] % 3u);   /* (V2: out, the wick alone) */
+        if (h) ui_flame(x, y + 9, h, cn_s[t] % 3u);   /* (out: the head alone) */
         ui_sprite(x, y + 12, 3, BODY, 9);
         ui_text(x + 5, y + 43, lab, 1, UI_M);
     }
@@ -663,7 +686,6 @@ static void ui_pic_draw(void);
 static void ui_home_part(int32_t x, int32_t y, int32_t w, int32_t h) { ui_region(x, y, w, h, UI_K, ui_pic_draw); }
 static void ui_home_frame(int draw)             /* a frame of HOME's picture (draw: what changed, drawn) */
 {
-    static const int8_t BLINK[6] = {4, 2, 0, 0, 2, 3};   /* (a blink's lids, a frame each) */
     uint32_t pk[NT], l = vis_lr[0], r = vis_lr[1], loud, t, i, sum = 0, n = 0, sound;
     int32_t k, dx, dy;
     an_n++;
@@ -703,44 +725,25 @@ static void ui_home_frame(int draw)             /* a frame of HOME's picture (dr
             sk_ph[i] = sk_ph[i] >= 12u ? 0u : (uint8_t)(sk_ph[i] + 1u);
             if (draw && sk_col(i) != c) ui_home_part(sk_x[i] * 3, 27 + sk_y[i] * 3, 3, 3);
         }
-    for (t = 0; t < 1u + loud / 96u; t++)       /* (the webs, the stars each as often as 1.0's stars) */
-        for (k = 0; k < 2; k++)
-            if (an_rnd(64) < 3u + loud / 12u) {
-                i = k ? sk_nw + an_rnd(sk_n - sk_nw) : an_rnd(sk_nw);
-                if (!sk_ph[i]) sk_ph[i] = 1;
-            }
+    for (t = 0; t < 2u + loud / 64u; t++)       /* (COQUÍ: the stars; louder: more) */
+        if (sk_n && an_rnd(64) < 3u + loud / 12u) {
+            i = an_rnd(sk_n);
+            if (!sk_ph[i]) sk_ph[i] = 1;
+        }
 
-    if (sound) {                                /* the eye: awake (the first sound: a blink), or dozing */
-        if (ey_doze) ey_doze = 0, ey_bl = 1;
+    if (sound) {                                /* (COQUÍ) the coquí: awake (the first sound: it sings), or asleep */
+        if (ey_doze) ey_doze = 0, fr_t = fm1_ms;
         an_sound_t = fm1_ms;
+        if (loud > 48u && loud > 3u * an_avg + 24u && fm1_ms - fr_t > 900u) fr_t = fm1_ms;   /* (a sudden hit) */
+        if (fm1_ms >= an_next) fr_t = fm1_ms, an_next = fm1_ms + 3000u + an_rnd(5000);   /* (now and then) */
     } else if (fm1_ms - an_sound_t > 4000u)
         ey_doze = 1;
-    if (!ey_doze) {
-        ey_tx = l + r > 64u ? ((int32_t)r - (int32_t)l) * 3 / (int32_t)(l + r) : 0;   /* (the balance: -3 .. 3) */
-        ey_ty = !n ? 0 : sum / n >= 72u ? -1 : sum / n < 50u ? 1 : 0;   /* (high notes up, low down) */
-        if (loud > 48u && loud > 3u * an_avg + 24u && fm1_ms - an_blink_t > 600u) ey_bl = 1;   /* (a sudden hit) */
-    } else if (fm1_ms >= an_drift_t) {          /* (dozing: somewhere else now and then) */
-        ey_tx = (int32_t)an_rnd(5) - 2, ey_ty = (int32_t)an_rnd(2);
-        an_drift_t = fm1_ms + 1200u + an_rnd(1500);
-    }
     an_avg = (an_avg * 7u + loud) / 8u;
-    if (!ey_bl && fm1_ms >= an_next) ey_bl = 1; /* (now and then) */
-    if (ey_bl) {
-        if (ey_bl == 1) an_next = fm1_ms + 2500u + an_rnd(5000);
-        an_blink_t = fm1_ms;
-        k = ey_bl < 6 ? BLINK[ey_bl] : ey_doze ? 2 : 4;
-        ey_bl = ey_bl >= 6 ? 0 : ey_bl + 1;
-    } else
-        k = ey_doze ? (ey_k > 2 && !(an_n % 9u) ? ey_k - 1 : ey_k < 2 ? ey_k + 1 : ey_k) : ey_k < 4 ? ey_k + 1 : 4;   /* (dozing:
-                                                 * the lids down slowly) */
-    dx = ey_dx, dy = ey_dy;
-    if (!(an_n % (ey_doze ? 5u : 2u))) {        /* (the iris: a cell at a time) */
-        dx += ey_tx > dx ? 1 : ey_tx < dx ? -1 : 0;
-        dy += ey_ty > dy ? 1 : ey_ty < dy ? -1 : 0;
-    }
-    if (k != ey_k || dx != ey_dx || dy != ey_dy) {
-        ey_k = k, ey_dx = dx, ey_dy = dy;
-        if (draw) ui_home_part(80, 39, 80, 40);
+    if (fr_t && fm1_ms - fr_t > 600u) fr_t = 0;
+    (void)k, (void)dx, (void)dy, (void)sum;
+    if ((fr_sing() | (uint32_t)ey_doze << 2) != fr_shown) {
+        fr_shown = fr_sing() | (uint32_t)ey_doze << 2;
+        if (draw) ui_home_part(FR_X, FR_Y, 64, 44), ui_home_part(20, 44, 64, 16);
     }
 }
 static int32_t ui_oct;                          /* (the octave: SEL's keys) */
@@ -1902,6 +1905,23 @@ static void pic_groove(void)
     }
 }
 
+/* (COQUÍ) AMBIENTE: the scene's name, what it is, and what it sets: the five effects lit or dark */
+static void pic_amb(void)
+{
+    uint32_t sc = (uint32_t)clamp(amb_scene, 0, NAMB - 1), i;
+    static const char *const FXN[5] = {"SPACE", "DELAY", "TAPE", "MASTER", "DRIVE"};
+    const int on[5] = {rv_mix > 0, dl_mix > 0, tf_wow | tf_sat | tf_hiss, mf_cut < 127, dr_amt > 0};
+    ui_caption("AMBIENTE", sc ? "A SCENE" : 0);
+    ui_text(120 - 8 * ui_len(AMB_NAME[sc]), 56, AMB_NAME[sc], 2, sc ? ui_acc : UI_M);
+    ui_text(120 - 4 * ui_len(AMB_WHAT[sc][0]), 84, AMB_WHAT[sc][0], 1, UI_L);
+    ui_text(120 - 4 * ui_len(AMB_WHAT[sc][1]), 96, AMB_WHAT[sc][1], 1, UI_L);
+    for (i = 0; i < 5u; i++) {                  /* (the effects now: lit, on; dark, off) */
+        int32_t x = 16 + (int32_t)i * 43;
+        ui_rect(x, 124, 40, 22, on[i] ? ui_acc : UI_D);
+        ui_text(x + 20 - 4 * ui_len(FXN[i]) + (ui_len(FXN[i]) > 5 ? 4 : 0), 131, ui_len(FXN[i]) > 5 ? "MSTR" : FXN[i], 1, on[i] ? UI_K : UI_M);
+    }
+}
+
 static void pic_notbuilt(void) { ui_text(120 - 4 * 13, 96, "NOT BUILT YET", 1, UI_M); }
 
 static void ui_pic_draw(void)
@@ -1913,6 +1933,7 @@ static void ui_pic_draw(void)
     case PG_PDLINE: pic_pdline(); return;
     case PG_PDENV: pic_pdenv(); return;
     case PG_GROOVE: pic_groove(); return;   /* (COQUÍ) */
+    case PG_AMB: pic_amb(); return;
     case PG_SOUND:
         switch (sel_eng()) {
         case ENG_VA: pic_va(); return;
@@ -1965,6 +1986,7 @@ static uint32_t ui_pic_key(void)
                                                  * MIXER 1's FX0) */
             UI_H(trk[t].ftype), UI_H(trk[t].fpos);
     UI_H(trk[sel].fm_alg), UI_H(trk[sel].fm_fb), UI_H(fm_op), UI_H(trk[sel].p[ENG_FM][0]), UI_H(perc_lit[sel]);
+    if (page == PG_AMB) UI_H(rv_mix), UI_H(dl_mix), UI_H(tf_wow | tf_sat | tf_hiss), UI_H(mf_cut), UI_H(dr_amt);
     if (page == PG_GROOVE) UI_H(seq_on ? grv_lit[sel] : 0u), UI_H(trk[sel].grv_style), UI_H(trk[sel].grv_parts);   /* (COQUÍ:
                                                  * the step playing) */   /* (COQUÍ:
                                                  * PERC's last hit) */
@@ -2066,18 +2088,8 @@ static void bs_draw(uint32_t e)
     }
 }
 
-/* the moon: a disc of radius 14 round (186, 32), a shadow on its left and two craters */
-static void bt_moon(void)
-{
-    static const uint8_t HW[14] = {14, 14, 14, 13, 13, 13, 12, 12, 11, 10, 9, 8, 6, 4};   /* half width a row */
-    int32_t r;
-    for (r = 0; r < 14; r++) {
-        int32_t w = HW[r];
-        ui_rect(186 - w, 31 - r, 2 * w, 1, UI_W), ui_rect(186 - w, 32 + r, 2 * w, 1, UI_W);
-        ui_rect(186 - w, 31 - r, w / 3 + 1, 1, UI_L), ui_rect(186 - w, 32 + r, w / 3 + 1, 1, UI_L);
-    }
-    ui_rect(189, 24, 5, 4, UI_L), ui_rect(180, 36, 4, 3, UI_L), ui_rect(192, 37, 3, 3, UI_L);
-}
+/* the moon (the boot's) */
+static void bt_moon(void) { cq_moon(186, 32); }
 
 /* the palm: a trunk leaning from the sand up to its crown at (52, 46), five fronds drooping from there */
 static void bt_palm(void)
@@ -2109,15 +2121,7 @@ static uint32_t bt_sing(uint32_t e)
 }
 static void bt_frog(uint32_t sing)
 {
-    static const char *const FROG[10] = {"...lll....lll...", "..lkwkl..lkwkl..", "..lkkkl..lkkkl..", ".llllllllllllll.",
-                                         "llllllllllllllll", "lldllllllllllldl", ".llllldlldlllll.", "..ll.llllll.ll..",
-                                         ".ll...llll...ll.", "ll............ll"};
-    ui_sprite(BT_FX, BT_FY, 4, FROG, 10);
-    if (sing == 1u) ui_rect(BT_FX + 26, BT_FY + 26, 12, 8, UI_W);
-    if (sing == 2u) {
-        ui_rect(BT_FX + 22, BT_FY + 24, 20, 4, UI_W), ui_rect(BT_FX + 18, BT_FY + 28, 28, 10, UI_W);
-        ui_rect(BT_FX + 22, BT_FY + 38, 20, 4, UI_W), ui_rect(BT_FX + 24, BT_FY + 30, 6, 4, UI_L);
-    }
+    cq_frog(BT_FX, BT_FY, sing, 0);
     if (sing == 1u) ui_text(162, 62, "CO", 2, UI_L);
     if (sing == 2u) ui_text(162, 62, "QUI!", 2, ui_acc);
 }
