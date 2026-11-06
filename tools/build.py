@@ -286,7 +286,7 @@ def mmio_check():
 def main():
     global PRODUCT, VERSION
     ap = argparse.ArgumentParser()
-    ap.add_argument("--release", metavar="X.Y", help="release build: the version string X.Y (identity FM-1_966 as always)")
+    ap.add_argument("--release", metavar="X.Y", help="release build: the version string X.Y (identity FM-1_923 as always)")
     ap.add_argument("--sdk", type=Path, help="JieLi AC79 SDK checkout (default: $AC79_SDK)")
     ap.add_argument("--define", action="append", default=[], metavar="NAME",
                     help="a test build: -DNAME for the app (e.g. GRIMM_TRS_TEST); give it its own --name")

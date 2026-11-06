@@ -1,0 +1,21 @@
+# COQUÍ's releases: push a tag (git tag v1.0 && git push origin v1.0) and GitHub builds the FM-1 package from this
+# source with the FM-1 Firmware Hub's shared workflow (zvenson/fm1-build, its review at v1), runs the host tests first,
+# signs a build attestation (the hub's "Built from source" badge) and publishes build/coqui-X.Y.fwsc as the tag's release.
+# A tag below 1.0, or with -rc / -beta in it, is a beta on the hub.
+#   gh attestation verify coqui-1.0.fwsc --repo saulofilho/coqui-fm1 \
+#     --signer-workflow zvenson/fm1-build/.github/workflows/build.yml
+name: release
+on:
+  push:
+    tags: ['v*']
+jobs:
+  build:
+    uses: zvenson/fm1-build/.github/workflows/build.yml@v1
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    with:
+      build: ./build.sh --release "${GITHUB_REF_NAME#v}"
+      packages: build/*.fwsc
+      test: APP_VER="${GITHUB_REF_NAME#v}" sh tests/run_host.sh

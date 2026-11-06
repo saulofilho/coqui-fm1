@@ -78,6 +78,14 @@ read GR!MM's or any other firmware's. If anything goes wrong, the Hub's **Rescue
 
 - [MANUAL.md](MANUAL.md): PERC, GROOVE, and what COQUÍ changes from GR!MM.
 - [PLAN.md](PLAN.md): how COQUÍ was made and what is left, in Portuguese.
+- [CHANGELOG.md](CHANGELOG.md): what each release brings.
+
+## Releasing
+
+Releases are built, tested and signed by GitHub (`.github/workflows/release.yml`, the FM-1 Firmware Hub's shared
+workflow `zvenson/fm1-build`): `tools/prep_release.sh X.Y` makes everything that shows the version again (the card, the
+emulator, the hub), then commit and `git tag vX.Y && git push origin vX.Y`. Before 1.0: [docs/TESTE-FM1.md](docs/TESTE-FM1.md),
+the test on a real FM-1 the hub asks for (in Portuguese).
 
 ## The hub page
 

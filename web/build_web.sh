@@ -20,7 +20,7 @@ WASM_OPT="$EMSDK/upstream/bin/wasm-opt"
 [ -x "$EMCC" ] || { echo "build_web: no Emscripten (emcc) in $EMSDK or on the PATH"; exit 1; }
 [ -x "$WASM_OPT" ] || { echo "build_web: no wasm-opt (Binaryen) in $EMSDK or on the PATH"; exit 1; }
 mkdir -p build/web web/dist
-"$EMCC" -O2 -Wall -Wno-unused-function -DGRIMM_WEB -DAPP_VER="\"${APP_VER:-2.0}\"" -Ifirmware/src -Ifirmware/gen \
+"$EMCC" -O2 -Wall -Wno-unused-function -DGRIMM_WEB -DAPP_VER="\"${APP_VER:-1.0}\"" -Ifirmware/src -Ifirmware/gen \
     --no-entry -sSTANDALONE_WASM -sFILESYSTEM=0 -sSTACK_SIZE=262144 -sINITIAL_MEMORY=4194304 \
     -o build/web/coqui.wasm firmware/src/coqui.c
 "$WASM_OPT" build/web/coqui.wasm --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext \

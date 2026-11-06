@@ -80,7 +80,7 @@ static void out_usb16(const int32_t *o, int32_t *u, uint32_t n);   /* (coqui.c: 
 #define APP_NAME "DINGHY"
 #endif
 #ifndef FELUCCA_ID
-#define FELUCCA_ID "FM-1_966"                   /* package identity: GR!MM 1.x (tools/build.py) */
+#define FELUCCA_ID "FM-1_923"                   /* package identity: COQUÍ's, every release (tools/build.py) */
 #endif
 #ifndef APP_VER
 #define APP_VER "0.0"

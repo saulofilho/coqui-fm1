@@ -1,7 +1,10 @@
 {
-  "what": "Latin and Caribbean groovebox: synthesized congas, bongos, timbales, guiro, clave and cowbell in salsa, perreo, bomba and tipico kits, a humanize knob for a loose hand, four tracks, a 64-step sequencer, tape, delay and reverb.",
+  "what": "Latin and Caribbean groovebox: synthesized congas, bongos, timbales, guiro and cowbell, 14 grooves from salsa and bomba to dembow, tumbao and montuno lines over the chord you hold, generative parts in the clave, and effect scenes from a backyard to a dub.",
   "author": "saulofilho",
-  "kinds": ["groove"],
+  "kinds": [
+    "groove"
+  ],
+  "play": "https://saulofilho.github.io/coqui-fm1/emu/",
   "image": "docs/card.png",
   "color": "#FF2D8A"
 }
