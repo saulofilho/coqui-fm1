@@ -49,7 +49,7 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    clave 2-3 de 2 compassos, com o peso da posição. AMBIENTE (`amb.c`, última página do FX): cenas SECO, QUINTAL, CALLE,
    PLAYA, NOCHE, DUB, RADIO AM sobre os efeitos que já existem (sem DSP nem pool novos). HOME: céu, lua, o coquí que
    canta e dorme, uma conga com chama neon por track. Teste `gen_clave_test.py`.
-6. ✅ **Publicação (teste no FM-1 feito 2026-11-06: `docs/TESTE-RESULTADO-1.0.md`; falta o tag e o e-mail):** `.github/workflows/release.yml` (tag `vX.Y` →
+6. ✅ **Publicação (teste no FM-1 feito 2026-11-06: `docs/TEST-RESULTS-1.0.md`, em inglês; falta o tag e o e-mail):** `.github/workflows/release.yml` (tag `vX.Y` →
    o GitHub compila, roda os 18 testes, assina e publica com `zvenson/fm1-build@v1`; simulado num clone limpo),
    `tools/prep_release.sh X.Y` (versão, card, telas, emulador, hub), `fmhub.json` final (com o emulador em `play`),
    `CHANGELOG.md`, roteiro `docs/TESTE-FM1.md` (exigências do Hub + o COQUÍ + CPU) e e-mail `docs/HUB-EMAIL.md`. As

@@ -5,7 +5,7 @@ congas, bongos, timbales, güiro, clave and cowbell, all synthesized on the FM-1
 with a HUMAN knob that loosens the hand.
 
 > **Version 1.0.** Tested on a real FM-1: installed from the official V15 and from another firmware, left again,
-> an interrupted update resumed ([the results](docs/TESTE-RESULTADO-1.0.md)). Unofficial: install at your own risk.
+> an interrupted update resumed ([the results](docs/TEST-RESULTS-1.0.md)). Unofficial: install at your own risk.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
 
