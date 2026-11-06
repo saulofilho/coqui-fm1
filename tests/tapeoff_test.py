@@ -1,7 +1,7 @@
 """GR!MM V2: TAPE off is TAPE off (host mode, firmware/src/host.c). With TAPE's four knobs at 0 and every TAPE tile at 0, the
 24-bit output (GRIMM_RAW_OUT) must be to the bit what GR!MM V2.0 RC made (tails3, tails4 alike; the reference:
 tests/data/tapeoff.sha256), for a set that sounds most of it:
-  T1 MONK DRONE (a pad, chords), T2 SALSA DURA (PERC), T3 a SAMPLE track (slot 1, chords and single keys, the DLY, REV
+  T1 NOCHE PAD (a pad, chords), T2 SALSA DURA (PERC), T3 a SAMPLE track (slot 1, chords and single keys, the DLY, REV
   and GRAIN sends up: DELAY, SPACE, GRAIN on), T4 DEMBOW (PERC) with GENERATE on (STORM), MASTER at 1022.
 (COQUÍ: the reference made again for PERC, where GR!MM's choirs were.)
 And (V2: TAPE a track's own) the same with TAPE's four knobs all up, every tile still 0.
@@ -25,7 +25,7 @@ def fx_key(t, bit):                             # FX held, a key tapped, FX let 
     return [(t, "down 2"), (t + 20, f"keys {1 << bit:#x}"), (t + 40, "keys 0"), (t + 60, "up 2")]
 
 
-EV = [(300, "enc 6 1"),                                                   # T1: MONK DRONE (a pad)
+EV = [(300, "enc 6 4"),                                                   # T1: NOCHE PAD (a pad)
       (400, "enc 1 1"), (500, "enc 6 30"),                                # T2: SALSA DURA (PERC)
       (600, "enc 1 1"), (700, "btn 6"), (750, "btn 6"), (800, "enc 2 2"), (850, "btn 8"),   # T3: SOURCE -> SAMPLE
       (900, "btn 8"), (950, "enc 0 1"), (1000, "enc 2 80"), (1050, "enc 0 1"), (1100, "enc 2 90"),   # its DLY, REV,

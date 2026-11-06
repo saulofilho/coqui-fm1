@@ -133,7 +133,7 @@ footer .bye { font-family: var(--f-pix); font-size: 11px; color: var(--rosa); le
 
 <section aria-labelledby="h-ritmos" id="ritmos">
   <h2 id="h-ritmos">LOS RITMOS</h2>
-  <p class="sub">Fourteen styles a PERC track plays by itself while the sequencer runs. Every sound here is the firmware's own, recorded from it.</p>
+  <p class="sub">Fourteen styles a PERC track plays by itself while the sequencer runs, and the lines the ARP plays over a chord. Every sound here is the firmware's own, recorded from it.</p>
   <div class="styles" id="styles"></div>
   <div class="legend">
     <span><i style="background:var(--rosa)"></i>accent</span>
@@ -176,6 +176,8 @@ footer .bye { font-family: var(--f-pix); font-size: 11px; color: var(--rosa); le
     <div class="k"><i>EDIT</i> &gt; GROOVE</div><div>STYLE, PARTS (the kit, the hands, the bells), FILL every 2, 4 or 8 bars, FEEL (swing).</div>
     <div class="k"><i>EDIT</i> &gt; SOUND</div><div>KIT, TUNE, DECAY, and HUMAN: each hit a little late, soft, off-pitch.</div>
     <div class="k">TWO PERC TRACKS</div><div>The same style, PARTS MANOS on one and CAMPANA on the other: their own level, pan and effects.</div>
+    <div class="k"><i>PRESETS</i> &gt; TUMBAO BASS</div><div>Hold one key: a tumbao on its chord, on the groove's bars. MONTUNO PIANO, GUAJEO PIANO, CUATRO GUAJEO, MERENGUE and BACHATA BASS too.</div>
+    <div class="k">HOLD <i>ARP</i> &gt; MODE</div><div>TUMBAO, MONTUNO, GUAJEO, MERENGUE, BACHATA on any sound; OCTAVES the register.</div>
     <div class="k">HOLD <i>GLO</i> + WHITE KEYS</div><div>Mute or solo T1–T4.</div>
     <div class="k">HOLD <i>SAVE</i> + WHITE KEYS</div><div>Recall or save slots A–D (playing: at the next bar).</div>
   </div>
@@ -188,6 +190,8 @@ footer .bye { font-family: var(--f-pix); font-size: 11px; color: var(--rosa); le
   <ul class="new">
     <li><strong>PERC</strong>: 22 percussion instruments synthesized on the FM-1, on their own pool of hits, never taking the bass's or the keys' voices.</li>
     <li><strong>GROOVE</strong>: 14 styles with accents, ghost notes and fills, from dembow to bomba yubá in 6/8.</li>
+    <li><strong>The lines</strong>: the ARP plays a tumbao, a piano montuno, a guajeo, merengue and bachata bass over the chord you hold, on the groove's bars.</li>
+    <li>44 factory sounds made for it: baby bass, montuno piano, cuatro, tres, mambo brass, boogaloo organ, steel pan…</li>
     <li>Ten factory kits, each with its style. The kit, the groove and the hits are saved in your sounds, slots and project.</li>
     <li>A noche tropical palette (ROSA, MANGO, MAR, LIMA) and a coquí that sings at start-up.</li>
     <li>Newer FM-1s (sold since autumn 2026) save and update too.</li>
@@ -354,7 +358,7 @@ function drawGrid(card, step) {
   x.font = '7px "Press Start 2P"'; x.textBaseline = "top";
   s.lanes.forEach(([k, str], i) => {
     const y = 4 + i * 11;
-    x.fillStyle = C.L; x.fillText(D.keys[k].slice(0, 8), 2, y + 1);
+    x.fillStyle = C.L; x.fillText((typeof k === "string" ? k : D.keys[k]).slice(0, 8), 2, y + 1);
     for (let j = 0; j < s.steps; j++) {
       const px = lx + j * cw + (j >= s.steps / 2 ? 4 : 0), c = str[j];
       if (step === j) { x.fillStyle = C.W; x.fillRect(px - 1, y - 1, cw, 10); }
@@ -377,6 +381,23 @@ D.styles.forEach((s, i) => {
   cards.push(card);
   card.btn.addEventListener("click", () => toggle(card));
 });
+{                                                           /* la orquesta: the groove, the tumbao, the montuno together */
+  const sty = D.styles.find((s) => s.name === "SALSA 2-3"), L = D.lines || {};
+  const asLane = (str) => str.replace(/[R35OL]/g, "x").replace(/-/g, "g");
+  const lane = (k) => sty.lanes.find(([kk]) => D.keys[kk] === k);
+  const s = { name: "LA ORQUESTA", bpm: 100, steps: 32, lanes: [lane("CLAVE"), lane("CONGA"), lane("SLAP"), lane("BONGO HI"),
+    ["TUMBAO", asLane(L.TUMBAO || "")], ["MONTUNO", asLane(L.MONTUNO || "")]].filter((l) => l && l[1]) };
+  const el = document.createElement("article");
+  el.className = "style";
+  el.innerHTML = `<div class="top"><button class="play" aria-label="Play LA ORQUESTA">&#9654;</button>
+    <h3>LA ORQUESTA<span class="bpm">100 BPM · 3 TRACKS</span></h3></div>
+    <canvas width="${66 + 32 * 6 + 6}" height="${6 + s.lanes.length * 11}" aria-hidden="true"></canvas>
+    <p class="what">SALSA DURA, TUMBAO BASS and MONTUNO PIANO: I–IV–V–I in C, each chord a single key held.</p>`;
+  host.prepend(el);
+  const card = { el, s, cv: el.querySelector("canvas"), btn: el.querySelector(".play"), url: "audio/band.mp3" };
+  cards.push(card);
+  card.btn.addEventListener("click", () => toggle(card));
+}
 document.fonts.load('7px "Press Start 2P"').finally(() => cards.forEach((c) => drawGrid(c, -1)));
 function stop() {
   if (!playing) return;

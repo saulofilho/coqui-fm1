@@ -103,7 +103,49 @@ The factory kits (PRESETS, category PERC) each bring a style: SALSA DURA (SALSA 
 PLENA CALLE (PLENA), MERENGUE, CUMBIA, MAMBO, BACHATA, DEMBOW, BARRIL LENTO (BOMBA YUBA), all with FILL every 4 bars.
 A sound saved from a PERC track keeps its GROOVE; so do the project and the slots.
 
-## 3. What else is different from GR!MM
+## 3. The lines: tumbao, montuno, guajeo
+
+The ARP plays Latin lines over the chord you hold, on the sequencer's bars (the groove's), on any sound: hold **ARP** to
+switch it on, tap **ARP** for its page, turn **MODE** past CHORD:
+
+| MODE | What it plays (two bars of sixteenths) |
+|---|---|
+| TUMBAO | the salsa bass: the fifth on 2-and, the root anticipated on 4, tied over the bar |
+| MONTUNO | the piano montuno: off-beat eighths in octaves (2-3) |
+| GUAJEO | the tres's line: root, third, fifth and octave in off-beats |
+| MERENGUE | the merengue bass: 1 and 3, a push into the next bar |
+| BACHATA | the bachata bass: long notes and its 2-and |
+
+- The line takes the **chord you hold**: three keys, or one key with chord mode on (SEL held), or even **one key
+  alone** (its major chord: the third and fifth it lacks are filled in). A new chord takes over at the line's next note,
+  the rhythm going on, so a chord change a moment before the bar lands the anticipations.
+- **OCTAVES** is the register in these modes: 1 an octave under what you hold (a bass), 2 as held, 3 and 4 higher.
+- **GATE** shortens each note (100 %: as written, ties included). **RATE** is the line's own.
+- Stopped, the line runs on the tempo from the first chord; playing, on the sequencer's bars.
+
+The factory sounds that bring a line switch the ARP on in its mode when loaded (another factory sound switches a line
+off): TUMBAO BASS, SALSA UPRIGHT (TUMBAO), MERENGUE BASS, BACHATA BASS, MONTUNO PIANO, GUAJEO PIANO, CUATRO GUAJEO.
+Turn PRESETS to TUMBAO BASS, hold C, press PLAY: a salsa bass. A sound you save keeps the timbre, not the ARP (as in
+GR!MM: the ARP is the project's).
+
+## 4. The factory sounds
+
+| Category | Sounds |
+|---|---|
+| LEAD | DEMBOW LEAD, PERREO PLUCK, TROPICAL SYNTH |
+| PAD | NOCHE PAD, BRISA, MAR CALMO, MALECON PAD |
+| BRASS | MAMBO BRASS, TROMBONE SALSA, TRUMPET STAB, SAX MERENGUE |
+| ORGAN | BOOGALOO ORGAN, SALSA ORGAN, SKANK ORGAN |
+| KEYS | MONTUNO PIANO, SALON PIANO, GUAJEO PIANO, BOLERO EP |
+| BASS | TUMBAO BASS, BABY BASS, MERENGUE BASS, BACHATA BASS, 808 BOOM, SALSA UPRIGHT |
+| CUERDAS | CUATRO, CUATRO GUAJEO, TRES CUBANO, REQUINTO, BACHATA GUITAR |
+| PERC | SALSA DURA, PERREO 2004, BOMBA SICA, PLENA CALLE, MERENGUE, CUMBIA, MAMBO, BACHATA, DEMBOW, BARRIL LENTO |
+| OTHER | STEEL PAN, MARIMBA, VIBRAFONO, SILBIDO, FLAUTA CHARANGA |
+
+The FM source has four new patches for them (PATCH on its SOUND page): BRASS, PIANO, CUATRO and BASS, beside BELL,
+ORGAN, SOFT PAD and REED.
+
+## 5. What else is different from GR!MM
 
 - **Identity**: COQUÍ is `FM-1_923`. Installers and the Firmware Hub tell it apart from GR!MM by this.
 - **Saves**: COQUÍ keeps its own sounds, slots, settings and samples, and never reads another firmware's. Back up
@@ -111,5 +153,4 @@ A sound saved from a PERC track keeps its GROOVE; so do the project and the slot
 - **Newer FM-1s**: the flash chip of FM-1s sold since autumn 2026 (UC25HQ80) works too: saves stay, and updates install.
 - **Colours**: SYSTEM's COLOUR offers ROSA (the default), MANGO, MAR and LIMA over a night-blue palette.
 - **Boot**: the coquí sings under the moon for a few seconds.
-- **Not yet changed**: HOME's picture (GR!MM's eye, webs and candles), the other factory sounds, the web emulator and
-  editor. [PLAN.md](PLAN.md) says what comes next.
+- **Not yet changed**: HOME's picture (GR!MM's eye, webs and candles) and the web editor. [PLAN.md](PLAN.md) says what comes next.

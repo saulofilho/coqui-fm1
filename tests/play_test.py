@@ -69,7 +69,7 @@ check("VELOCITY loaded from the settings (byte 169, bit 1), LATCH beside it as i
 # PHASE (WRAITH, preset 25, on T1), its LINE 2 page (EDIT: SOUND, SOURCE, LINE 2): off, the sound as before (to the
 # byte, against the build given as the second argument, if one); RING: another sound, in range; saved, loaded; 1.0: off
 OLD = sys.argv[2] if len(sys.argv) > 2 else None
-PD = [(300, "enc 6 25"), (400, "btn 6"), (450, "btn 6"), (500, "btn 6")]
+PD = [(300, "enc 6 3"), (400, "btn 6"), (450, "btn 6"), (500, "btn 6")]
 PLAY = [(3000, "keys 0x880"), (5000, "keys 0")]
 
 

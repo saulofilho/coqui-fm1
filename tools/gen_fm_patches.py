@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 GR!MM
-"""GR!MM's FM patches (firmware/src/fm.c) -> a C header of 155-byte voices.
+"""GR!MM's FM patches (firmware/src/fm.c), with COQUÍ's (BRASS, PIANO, CUATRO, BASS) -> a C header of 155-byte voices.
 
   python3 tools/gen_fm_patches.py firmware/gen/coqui_fm.h
 
@@ -70,6 +70,40 @@ PATCHES = [
         op(54),
         op(50)],
         fb=5, lfs=30, lpmd=5, lpms=2),
+    # (COQUÍ) the Latin ones, written here for COQUÍ (no factory data of any instrument). Their carriers' own envelopes
+    # decay where the instrument does (PIANO, CUATRO, BASS: plucked and struck); BRASS swells and holds.
+    voice("BRASS", 5, [                            # three 1:1 pairs, the modulators opening a little after the attack
+        op(92, r=(72, 40, 99, 62), l=(99, 96, 96, 0)),   # (the carriers ~5 dB under full: tests/level_test.py)
+        op(80, r=(58, 36, 99, 62), l=(99, 88, 86, 0)),
+        op(86, det=9, r=(70, 40, 99, 62), l=(99, 95, 95, 0)),
+        op(74, r=(55, 34, 99, 62), l=(99, 86, 84, 0)),
+        op(80, det=5, r=(68, 40, 99, 62), l=(99, 95, 95, 0)),
+        op(70, r=(52, 32, 99, 62), l=(99, 84, 82, 0))],
+        fb=6, lfs=33, lpmd=3, lpms=2),
+    voice("PIANO", 5, [                            # a struck string and its octave, a short bright tine at the attack
+        op(99, r=(99, 42, 26, 58), l=(99, 82, 0, 0), kvs=2),
+        op(70, r=(99, 58, 38, 58), l=(99, 62, 0, 0)),
+        op(90, det=8, r=(99, 40, 25, 58), l=(99, 80, 0, 0)),
+        op(56, fc=14, r=(99, 86, 60, 60), l=(99, 0, 0, 0)),
+        op(80, fc=2, det=6, r=(99, 48, 30, 58), l=(99, 74, 0, 0)),
+        op(52, r=(99, 60, 40, 58), l=(99, 55, 0, 0))],
+        fb=2),
+    voice("CUATRO", 5, [                           # steel strings plucked in pairs (unison and octave), a bright edge
+        op(99, r=(99, 52, 34, 60), l=(99, 70, 0, 0)),
+        op(80, r=(99, 74, 50, 60), l=(99, 42, 0, 0)),
+        op(88, fc=2, det=9, r=(99, 54, 36, 60), l=(99, 66, 0, 0)),
+        op(68, fc=3, r=(99, 80, 56, 60), l=(99, 30, 0, 0)),
+        op(84, det=5, r=(99, 50, 33, 60), l=(99, 70, 0, 0)),
+        op(62, fc=5, r=(99, 90, 70, 60), l=(99, 0, 0, 0))],
+        fb=3),
+    voice("BASS", 5, [                             # baby bass: a round fundamental, a thumb's knock, a sub
+        op(99, r=(99, 40, 24, 62), l=(99, 88, 52, 0)),
+        op(68, r=(99, 64, 40, 62), l=(99, 48, 18, 0)),
+        op(82, fc=0, r=(99, 38, 22, 62), l=(99, 90, 56, 0)),
+        op(30, r=(99, 50, 40, 62), l=(99, 40, 20, 0)),
+        op(60, fc=1, det=6, r=(99, 44, 28, 62), l=(99, 80, 40, 0)),
+        op(54, fc=3, r=(99, 92, 80, 62), l=(99, 0, 0, 0))],
+        fb=1, trnsp=24),
 ]
 
 

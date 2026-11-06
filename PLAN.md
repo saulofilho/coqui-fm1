@@ -39,7 +39,11 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    página do GR!MM adaptada (cores, PERC/GROOVE na ajuda, link para o hub). `node web/test_web.mjs --emulator` confere
    som e telas contra o modo host. **Pendente:** o editor web (`web/editor*`) ainda é o do GR!MM; o formato dos sons e
    dos slots já foi ajustado no `editor_core.js`, mas a página e seus testes não. Fora do hub até ser adaptado.
-4. **Melódico:** baixo tumbao e piano montuno que seguem o acorde; metais em FM; cuatro dedilhado.
+4. ✅ **Melódico (feita 2026-11-06):** modos novos do ARP (`arp.c`): TUMBAO, MONTUNO, GUAJEO, MERENGUE, BACHATA, linhas
+   de 2 compassos sobre os graus do acorde segurado (uma tecla só vira acorde maior), no compasso do sequenciador.
+   Patches FM BRASS, PIANO, CUATRO, BASS. Os 34 sons do GR!MM viraram sons latinos (categorias LEAD, PAD, BRASS, ORGAN,
+   KEYS, BASS, CUERDAS, PERC, OTHER); os de baixo e piano trazem a linha ao carregar. Teste `latin_arp_test.py`; hub
+   com "la orquesta" (groove + tumbao + montuno).
 5. **Mood:** GENERATE vira NOCHE / CALLE / FIESTA (variações sempre na clave). FX: reverb de rua ou quintal,
    delay de dub, "rádio AM" (lo-fi). Telas neon.
 6. **Publicação:** testes host e web, teste no FM-1 físico (instalar, sair para outro firmware, retomar uma

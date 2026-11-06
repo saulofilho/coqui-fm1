@@ -66,12 +66,12 @@ check("HOME held, HOME, HOME: SYSTEM, SYSTEM 2, SYSTEM 3; HOME again: SYSTEM",
       [pr[t]["page"] for t in (1100, 1300, 1500, 4100)])
 check("SYSTEM 3's LATCH: FROM SOUND as set out; turned to ALWAYS OFF, saved with the settings (170 B)",
       pr[1500]["new"] == 0 and pr[1700]["new"] == 1 and "settings saved (170 B)" in out)
-# a sound loaded (PRESETS: CRYPT PAD, saved with LATCH ON)
-PRESET = [(300, "enc 6 1")]
+# a sound loaded (PRESETS: NOCHE PAD, saved with LATCH ON; COQUÍ: GR!MM's CRYPT PAD is gone)
+PRESET = [(300, "enc 6 4")]
 pr, _ = run("snd_from", PRESET + probes(500), 600)
-check("FROM SOUND (as 1.0): a sound loaded brings its LATCH (CRYPT PAD: ON)", pr[500]["latch"][0] == 1, pr[500]["latch"])
+check("FROM SOUND (as 1.0): a sound loaded brings its LATCH (NOCHE PAD: ON)", pr[500]["latch"][0] == 1, pr[500]["latch"])
 pr, _ = run("snd_off", PRESET + probes(500), 600, settings("off", latch=1))
-check("ALWAYS OFF: CRYPT PAD loaded, the track's LATCH stays OFF", pr[500]["latch"][0] == 0, pr[500]["latch"])
+check("ALWAYS OFF: NOCHE PAD loaded, the track's LATCH stays OFF", pr[500]["latch"][0] == 0, pr[500]["latch"])
 pr, _ = run("snd_hand", [(300, "down 3"), (400, "btn 1"), (500, "up 3"), (700, "enc 6 1"), (900, "enc 6 1"),
                          (1100, "enc 6 -1")] + probes(600, 1200), 1300, settings("off", latch=1))
 check("ALWAYS OFF: latched by hand (SEL + OCT+), then a sound loaded: LATCH OFF (at the load)",

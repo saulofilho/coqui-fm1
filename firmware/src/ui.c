@@ -1573,6 +1573,30 @@ static void pic_arp(void)                       /* Arp: what it holds, its steps
     else if (ids == 1u) e = trk[sel].chord ? chord_name(sel, A->root[0], e) : ui_note(e, A->root[0]);
     else e = put_s(put_u(e, un), " NOTES");
     put_s(put_u(put_s(e, " / "), oct), oct == 1u ? " OCTAVE" : " OCTAVES");
+    if (clamp(trk[sel].arp_mode, 0, NARPMODE - 1) >= ARP_TUMBAO) {   /* (COQUÍ) a Latin line: its two bars, each note's
+                                                 * height its degree (L, R, 3, 5, O), its ties, the step playing lit */
+        const char *L = ARP_LAT[clamp(trk[sel].arp_mode, ARP_TUMBAO, NARPMODE - 1) - ARP_TUMBAO];
+        static const char DEG[] = "LR35O";
+        int32_t j, h = 0;
+        ui_caption(l, ARP_MODE_NAME[clamp(trk[sel].arp_mode, 0, NARPMODE - 1)]);
+        for (j = 0; j < 32; j++) {
+            int32_t px = PX0 + 4 + j * 6 + (j >= 16 ? 8 : 0), d;
+            uint16_t c = trk[sel].arp && A->n && now == j ? ui_acc : UI_L;
+            if (L[j] != '-' && L[j] != '.')
+                for (d = 0; d < 5 && DEG[d] != L[j]; d++)
+                    ;
+            else d = -1;
+            if (d >= 0) h = d;
+            if (L[j] == '.') { if (!(j & 3)) ui_rect(px + 1, 150, 2, 2, UI_D); continue; }
+            ui_rect(px, 146 - h * 18, L[j] == '-' ? 6 : 4, 6, L[j] == '-' ? (c == ui_acc ? ui_acc : UI_M) : c);
+        }
+        for (j = 0; j < 5; j++) ui_text(PX0, 146 - j * 18, (char[]){DEG[j], 0}, 1, UI_D);
+        if (!trk[sel].arp || !A->n) {
+            const char *m = trk[sel].arp ? "HOLD A CHORD" : "HOLD ARP: ON";
+            ui_text(120 - 4 * ui_len(m), 52, m, 1, UI_M);
+        }
+        return;
+    }
     ui_caption(l, 0);
     if (!trk[sel].arp || !n) {
         const char *m = trk[sel].arp ? "PLAY KEYS" : "HOLD ARP: ON";

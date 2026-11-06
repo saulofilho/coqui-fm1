@@ -40,6 +40,7 @@ def run(name, ev, end, env):
             w = ln.split(" ui ", 1)[1].split()
             d = {w[i]: w[i + 1] for i in range(0, len(w) - 1, 2)}
             pr[int(ln.split()[1])] = dict(latch=int(d["latch"].split(",")[0]), page=int(d["page"]), eng=int(d["eng"]),
+                                          arp=int(d.get("arpon", "0").split(",")[0]),
                                           saved=int(d["slatch"]),
                                           notes=[x for x in ln.split(" notes", 1)[1].split(" fx ")[0].split()
                                                  if x.startswith("1:")])
@@ -64,9 +65,10 @@ NAME = {0: "FROM SOUND", 1: "ALWAYS OFF"}
 # every factory sound (PRESETS 1 .. 40), each setting
 n_ok = n_all = 0
 for k in range(1, 45):
-    eng = run("eng", [(300, f"enc 6 {k}"), (500, "probe")], 600, ENV[0])[500]["eng"]
-    if eng == 3:                                # (COQUÍ: PERC's kits strike, they hold no notes: no LATCH to test)
-        continue
+    p0 = run("eng", [(300, f"enc 6 {k}"), (500, "probe")], 600, ENV[0])[500]
+    eng = p0["eng"]
+    if eng == 3 or p0["arp"]:                   # (COQUÍ: PERC's kits strike, they hold no notes; a sound that brings an
+        continue                                # ARP line (TUMBAO ..) gives its notes to the ARP: no LATCH to test)
     n_all += 2
     edit = [(700 + 100 * i, "btn 6") for i in range(4 if eng == ENG_FM else 2)]   # (FM: FM ALGO, FM OP before SOURCE)
     for s in (0, 1):
@@ -83,10 +85,10 @@ for k in range(1, 45):
               not p[2100]["notes"] and p[2400]["latch"] == 0 and not p[2800]["notes"] and p[3200]["latch"] == 1 and
               p[3600]["notes"] and p[3900]["latch"] == 0 and not p[3900]["notes"] and p[4500]["latch"] == nxt and
               (bool(p[4500]["notes"]) == bool(nxt)))
-        n_ok += ok
+        n_ok += bool(ok)
         check(f"{NAME[s]}, sound {k}", ok, {t: (p[t]["latch"], p[t]["notes"]) for t in sorted(p)}, quiet=True)
 check(f"every factory sound but PERC's, both settings: loaded as set; EDIT's LATCH and SEL + OCT+ latch and let go "
-      f"({n_ok}/{n_all})", n_ok == n_all and n_all >= 60)
+      f"({n_ok}/{n_all})", n_ok == n_all and n_all >= 50)
 
 # slots A..D and the project keep their tracks' LATCH (SYSTEM 3 acts on a sound's load only)
 for s in (0, 1):

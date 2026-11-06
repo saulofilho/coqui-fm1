@@ -220,9 +220,9 @@ check("a key held, ALGORITHM turned, a key on the new track: T1's chord stays an
       pr[2100][0] == {1: chord(C4), 2: [E4], 3: [], 4: []} and pr[2500][0] == {1: [], 2: [E4], 3: [], 4: []} and
       total(pr[3000][0]) == 0, [pr[m][0] for m in (2100, 2500, 3000)])
 
-# ---- a preset loaded on T2 (HOLLOW HYMN (COQUÍ: GR!MM's GREGORIAN is gone): its CHORD TYPE and VOICING are set, chord mode stays off: a factory sound never
+# ---- a preset loaded on T2 (MALECON PAD (COQUÍ: GR!MM's GREGORIAN is gone): its CHORD TYPE and VOICING are set, chord mode stays off: a factory sound never
 # switches it on): T1 as it was (on); T2, T3, T4 play the one note
-ev = list(T1_ON) + to(1300, 0, 1) + [(1400, "enc 6 12"), (1500, "probe"), (1600, "enc 1 -1")]
+ev = list(T1_ON) + to(1300, 0, 1) + [(1400, "enc 6 7"), (1500, "probe"), (1600, "enc 1 -1")]
 t = 1800
 for tr in range(4):
     ev += go(t - 100, tr) + [(t, f"keys {KEY_C:#x}"), (t + 200, "probe"), (t + 300, "keys 0")]
@@ -231,8 +231,8 @@ pr = run("preset", ev, t + 200)
 ms = sorted(pr)
 chd = pr[ms[0]][1]
 got = [pr[m][0] for m in ms[1:]]
-check("a preset loaded on T2 (HOLLOW HYMN: MAJ OPEN): chord mode stays off, its CHORD TYPE and VOICING are set, T1 as it was (on), "
-      "T3 and T4 untouched", chd == [(1, 0, 0), (0, 2, 1), (0, 0, 0), (0, 0, 0)], chd)
+check("a preset loaded on T2 (MALECON PAD: SUS2 OPEN): chord mode stays off, its CHORD TYPE and VOICING are set, T1 as it was (on), "
+      "T3 and T4 untouched", chd == [(1, 0, 0), (0, 3, 1), (0, 0, 0), (0, 0, 0)], chd)
 check("a preset loaded on T2: T1 plays its chord, T2, T3 and T4 the one note",
       got[0][1] == chord(C4) and got[1][2] == [C4] and got[2][3] == [C4] and got[3][4] == [C4] and
       all(total(g) == len(g[i + 1]) for i, g in enumerate(got)), got)

@@ -11,16 +11,32 @@
  *   held (that note at once)
  *   REC on and the sequencer playing: the selected track's arp notes are live-recorded into its sequence
  * Its notes: coqui.c note_on / note_off as SRC_ARP (their origin: the note), the track's source and ENV, no chord of
- * their own. Audio ISR; the main loop reads the list (the screen, the keys' lights). */
+ * their own. Audio ISR; the main loop reads the list (the screen, the keys' lights).
+ * (COQUÍ) The Latin modes, TUMBAO .. BACHATA: a two-bar line in sixteenths (ARP_LAT) over the chord held, its tones low
+ * to high: R the root, 3 the next, 5 the next (a tone missing: a major third, a fifth over the root), O the root an
+ * octave up, L an octave down; '-' ties the note on, '.' rests. RATE is the line's own; OCTAVES the register (1 an octave
+ * under what is held: a bass; 2 as held; 3, 4 higher); GATE a share of each note's length; MONTUNO plays octaves. A new
+ * chord takes over at the next note, the rhythm going on; on the sequencer's bars while it plays. */
 
-enum { ARP_UP, ARP_DOWN, ARP_UPDN, ARP_RND, ARP_PLAYED, ARP_CHORD, NARPMODE };
+enum { ARP_UP, ARP_DOWN, ARP_UPDN, ARP_RND, ARP_PLAYED, ARP_CHORD, ARP_TUMBAO, ARP_MONTUNO, ARP_GUAJEO, ARP_MERENGUE,
+       ARP_BACHATA, NARPMODE };   /* (COQUÍ: TUMBAO .. BACHATA, the Latin lines) */
 #define NARPRATE 9
 #define ARP_N 16u                               /* notes in a track's list at most */
 #define ARP_PN (2u * ARP_N * 4u)                /* a pattern's steps at most (UP-DOWN over 4 octaves) */
 static const uint16_t ARP_RATE_T[NARPRATE] = {384, 192, 96, 48, 24, 12, 64, 32, 16};   /* RATE: ticks a step */
 static const char *const ARP_RATE_NAME[NARPRATE] = {"1/1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/4T", "1/8T", "1/16T"};
-static const char *const ARP_MODE_NAME[NARPMODE] = {"UP", "DOWN", "UP-DOWN", "RANDOM", "AS PLAYED", "CHORD"};
-static const char *const ARP_MODE_SHORT[NARPMODE] = {"UP", "DOWN", "UPDN", "RAND", "PLAYED", "CHORD"};   /* (slabs) */
+static const char *const ARP_MODE_NAME[NARPMODE] = {"UP", "DOWN", "UP-DOWN", "RANDOM", "AS PLAYED", "CHORD", "TUMBAO",
+                                                    "MONTUNO", "GUAJEO", "MERENGUE", "BACHATA"};
+static const char *const ARP_MODE_SHORT[NARPMODE] = {"UP", "DOWN", "UPDN", "RAND", "PLAYED", "CHORD", "TUMBAO", "MONTNO",
+                                                     "GUAJEO", "MRENGE", "BACHTA"};   /* (slabs) */
+#define ARP_NLAT (NARPMODE - ARP_TUMBAO)
+static const char *const ARP_LAT[ARP_NLAT] = {   /* |1 . . . 2 . . . 3 . . . 4 . . . |1 . . . 2 . . . 3 . . . 4 . . . | */
+    "------5-----R---------5-----R---",   /* TUMBAO: the fifth on 2-and, the root anticipating on 4 */
+    "..5.3.5.R.5.3.5...5.3.5.O.5.3.O.",   /* MONTUNO: off-beat eighths in octaves, 2-3 */
+    "..R.3.5.O.5.3.R...R.3.5.O.5.3.5.",   /* GUAJEO: the tres's line */
+    "R...5...R...5...R...5...R.5.R.5.",   /* MERENGUE: the bass on 1 and 3, a push into the next */
+    "R-----R-5-------R-----R-5-------",   /* BACHATA: the bass, long, its 2-and */
+};
 
 typedef struct {
     uint8_t note[ARP_N], id[ARP_N], root[ARP_N];   /* the list: the notes, where they came from (lat_id), the note
@@ -31,6 +47,7 @@ typedef struct {
     volatile uint32_t pos;                      /* the step to come */
     volatile int32_t last;                      /* the step played last (the screen; -1: none) */
     uint32_t was;                               /* ARP on, as last seen */
+    uint32_t glen;                              /* (COQUÍ: a Latin line's note: its ticks, GATE's share; 0: none) */
 } arp_t;
 static arp_t arp[NT];
 static volatile int32_t arp_rec = -1;           /* main loop: the track live-recording its arp (REC, playing), or -1 */
@@ -118,12 +135,53 @@ static void arp_step(uint32_t t)                /* audio: the step due: its note
         if (s >= 0) seq_write(t, s, first, 0u);   /* (its notes: notes, not chord steps) */
     }
 }
+/* (COQUÍ) a Latin line's tone for degree c over the chord held (b: its notes low to high, n of them), or -1 */
+static int32_t arp_deg(char c, const uint8_t *b, uint32_t n)
+{
+    int32_t r = b[0];
+    switch (c) {
+    case 'R': return r;
+    case '3': return n > 1u ? b[1] : r + 4;
+    case '5': return n > 2u ? b[2] : n > 1u ? b[1] + 3 : r + 7;
+    case 'O': return r + 12;
+    case 'L': return r - 12;
+    default: return -1;
+    }
+}
+static void arp_lat_tick(uint32_t t, uint32_t tk)   /* audio: a tick (tk: the line's clock) of a Latin mode */
+{
+    arp_t *A = &arp[t];
+    const char *L = ARP_LAT[clamp(trk[t].arp_mode, ARP_TUMBAO, NARPMODE - 1) - ARP_TUMBAO];
+    uint8_t b[ARP_PN];
+    uint32_t s, n, len;
+    int32_t v, sh = (clamp(trk[t].arp_oct, 1, 4) - 2) * 12;
+    if (A->glen && ++A->since >= A->glen) arp_release(t), A->glen = 0;   /* (GATE: its end) */
+    if (tk % 24u) return;                       /* (a sixteenth) */
+    s = (tk / 24u) % 32u;
+    if (L[s] == '-') return;                    /* (tied on) */
+    arp_release(t), A->glen = 0, A->last = (int32_t)s;
+    if (L[s] == '.') return;
+    n = arp_pattern(t, b, 1u);                  /* (the chord: low to high, each once) */
+    if (!n || (v = arp_deg(L[s], b, n)) < 0) return;
+    v += sh;
+    if (v >= 0 && v <= 127) arp_play(t, (uint32_t)v);
+    if (clamp(trk[t].arp_mode, 0, NARPMODE - 1) == ARP_MONTUNO && v + 12 >= 0 && v + 12 <= 127) arp_play(t, (uint32_t)(v + 12));
+    for (len = 1u; len < 32u && L[(s + len) % 32u] == '-'; len++)
+        ;
+    A->glen = len * 24u * (uint32_t)clamp(trk[t].arp_gate, 10, 100) / 100u, A->since = 0;
+    if (A->glen < 2u) A->glen = 2u;
+}
 static void arp_tick(uint32_t t, int locked)    /* audio: a tick of track t's arp (locked: the sequencer's tick) */
 {
     arp_t *A = &arp[t];
     uint32_t r, g, due;
     gen_tick(t);                                /* (V2: GENERATE, on the same clock: gen.c) */
     if (!A->n) return;
+    if (clamp(trk[t].arp_mode, 0, NARPMODE - 1) >= ARP_TUMBAO) {   /* (COQUÍ: a Latin line, on the bars) */
+        arp_lat_tick(t, locked ? seq_ticks - 1u : A->ft);
+        A->ft++;
+        return;
+    }
     r = ARP_RATE_T[clamp(trk[t].arp_rate, 0, NARPRATE - 1)];
     g = r * (uint32_t)clamp(trk[t].arp_gate, 10, 100) / 100u;
     if (++A->since >= (g ? g : 1u)) arp_release(t);   /* GATE: the note's end */

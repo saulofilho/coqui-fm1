@@ -4,7 +4,7 @@
  *   SOUNDS (sector 0, SND_N slots of 64 B): a track's sound: its source, that source's four, ENV, LATCH, CHORD, LFO
  *   (a sound saved before the LFO: DEPTH 0), FM: its own patch (FM ALGO, FM OP; saved before: the PATCH as built);
  *   its CATEGORY
- *   and its number in it (the name: "DRONE 03"); saved before step 24 (128 slots of 32 B): made 64 of 64 B once at power-on, the first 64
+ *   and its number in it (the name: "LEAD 03"); saved before step 24 (128 slots of 32 B): made 64 of 64 B once at power-on, the first 64
  *   where they were, those past them into empty slots (snd_moved; no room: snd_lost). SND_FACTORY: the 40 factory sounds (in the image, read-only, their own
  *   names), first in PRESETS' lists; SAVE > SOUNDS lists, saves and clears the user's only
  *   the working project, saved by itself (autosave: coqui.c), in two objects, each in a pair of sectors written in
@@ -74,8 +74,9 @@ static const uint16_t OBJ_VERS[NOBJV][7] = {{9, 56, 20, 260, 288, FM_ALL, FX2_PK
 #define SLS_P (4096u - OBJ_HDR - 4u)            /* the stream's bytes a sector */
 #define SLS_N 3u                                /* its sectors: 3, 4, 5 */
 enum { OBJ_WORK, OBJ_SLOTS };
-enum { CAT_DRONE, CAT_PAD, CAT_BELL, CAT_ORGAN, CAT_KEYS, CAT_BASS, CAT_TEXTURE, CAT_PERC, CAT_OTHER, NCAT };
-static const char *const CAT_NAME[NCAT] = {"DRONE", "PAD", "BELL", "ORGAN", "KEYS", "BASS", "TEXTURE", "PERC", "OTHER"};
+enum { CAT_LEAD, CAT_PAD, CAT_BRASS, CAT_ORGAN, CAT_KEYS, CAT_BASS, CAT_STRINGS, CAT_PERC, CAT_OTHER, NCAT };   /* (COQUÍ:
+                                                 * GR!MM's DRONE, BELL, TEXTURE are LEAD, BRASS, CUERDAS) */
+static const char *const CAT_NAME[NCAT] = {"LEAD", "PAD", "BRASS", "ORGAN", "KEYS", "BASS", "CUERDAS", "PERC", "OTHER"};
 _Static_assert(NENG <= PK_ENG, "a save keeps every source's settings");
 _Static_assert(SND_N * SND_SIZE <= 4096u && OBJ_HDR + WORK_PK + 4u <= 4096u && 4u * SLOT_ALL <= SLS_N * SLS_P &&
                SAVE_NSECT >= 3u + SLS_N, "the save sectors");
@@ -89,77 +90,65 @@ _Static_assert(SND_N * SND_SIZE <= 4096u && OBJ_HDR + WORK_PK + 4u <= 4096u && 4
  * SHAPE 0 SINE, 1 TRIANGLE, 5 RANDOM, 6 DRIFT */
 #define FSND(c, n, e, k0, k1, k2, k3, a, d, s, r, la, ch, lr, ld, lt, ls)                                              \
     {SND_MAGIC1, c, n, e, k0, k1, k2, k3, a, d, s, r, la, ch, lr, ld, lt, ls}
+#define FSNDL(c, n, e, k0, k1, k2, k3, a, d, s, r, la, ch, lr, ld, lt, ls, line, oct)   /* (COQUÍ) a sound that brings an
+                                                 * ARP line (byte 26: 1 TUMBAO .. 5 BACHATA; 27: its OCTAVES) */ \
+    {SND_MAGIC1, c, n, e, k0, k1, k2, k3, a, d, s, r, la, ch, lr, ld, lt, ls, 0, 0, 0, 0, 0, 0, 0, 0, line, oct}
 #define FSNDP(n, kit, tu, de, hu, sty, fill)     /* (COQUÍ) a PERC kit: KIT, TUNE, DECAY, HUMAN; its GROOVE (TODO, FEEL 0) */ \
     {SND_MAGIC1, CAT_PERC, n, ENG_PERC, kit, tu, de, hu, 0, 64, 127, 64, 0, 0x00, 40, 0, 0, 0, sty, 0, fill, 64}
-static const uint8_t SND_FACTORY[][SND_FSIZE] = {
-    /* PADS */
-    FSND(CAT_PAD, 1, ENG_VA, 2, 70, 62, 20, 105, 100, 110, 100, 1, 0x11, 30, 15, 5, 0),     /* CRYPT PAD */
-    FSND(CAT_PAD, 2, ENG_VA, 0, 25, 50, 10, 95, 90, 115, 95, 1, 0x13, 35, 10, 5, 6),        /* ASH VEIL */
-    FSND(CAT_PAD, 3, ENG_FM, 2, 90, 100, 60, 100, 90, 110, 105, 1, 0x27, 70, 15, 4, 1),     /* FROZEN HALL */
-    FSND(CAT_PAD, 4, ENG_PHASE, 5, 0, 60, 8, 110, 100, 120, 100, 1, 0x06, 40, 10, 5, 0),    /* LAST LIGHT */
-    FSND(CAT_PAD, 5, ENG_VA, 0, 45, 60, 25, 90, 90, 110, 95, 1, 0x04, 35, 1, 0, 6),         /* MOSS */
-    FSND(CAT_PAD, 6, ENG_FM, 2, 40, 64, 30, 95, 90, 115, 100, 1, 0x11, 40, 0, 0, 0),        /* BLACK VELVET */
-    /* DRONES */
-    FSND(CAT_DRONE, 1, ENG_VA, 0, 15, 50, 0, 100, 90, 120, 105, 1, 0x05, 20, 8, 1, 0),      /* MONK DRONE */
-    FSND(CAT_DRONE, 2, ENG_VA, 1, 5, 52, 30, 100, 90, 120, 110, 1, 0x05, 25, 30, 5, 0),     /* ABYSS */
-    FSND(CAT_DRONE, 3, ENG_PHYS, 0, 100, 120, 60, 90, 90, 90, 100, 1, 0x05, 70, 20, 6, 5),  /* IRON LUNG */
-    FSND(CAT_DRONE, 4, ENG_WHEEL, 0, 0, 10, 0, 70, 40, 60, 90, 1, 0x05, 15, 0, 1, 0),       /* TOMB HUM */
+static const uint8_t SND_FACTORY[][SND_FSIZE] = {   /* (COQUÍ's: written for it; no factory data of any instrument.
+                                                 * PRESETS' order: by CATEGORY, then as here; the PERC kits 30 .. 39) */
+    FSND(CAT_LEAD, 1, ENG_VA, 2, 40, 80, 25, 0, 70, 100, 40, 0, 0x00, 40, 0, 0, 0),   /* DEMBOW LEAD */
+    FSND(CAT_LEAD, 2, ENG_VA, 0, 10, 88, 40, 0, 72, 45, 45, 0, 0x00, 40, 0, 0, 0),   /* PERREO PLUCK */
+    FSND(CAT_LEAD, 3, ENG_PHASE, 6, 0, 90, 0, 10, 90, 110, 60, 0, 0x00, 85, 6, 0, 0),   /* TROPICAL SYNTH */
+    FSND(CAT_PAD, 1, ENG_VA, 2, 50, 50, 10, 100, 90, 115, 100, 1, 0x11, 20, 25, 5, 0),   /* NOCHE PAD */
+    FSND(CAT_PAD, 2, ENG_FM, 2, 40, 90, 30, 105, 90, 120, 105, 1, 0x05, 30, 10, 1, 0),   /* BRISA */
+    FSND(CAT_PAD, 3, ENG_PHASE, 5, 0, 60, 8, 110, 100, 120, 100, 1, 0x12, 25, 15, 5, 0),   /* MAR CALMO */
+    FSND(CAT_PAD, 4, ENG_VA, 0, 30, 60, 15, 90, 90, 115, 95, 0, 0x13, 35, 10, 5, 6),   /* MALECON PAD */
+    FSND(CAT_BRASS, 1, ENG_FM, 4, 70, 64, 10, 20, 80, 110, 40, 0, 0x00, 40, 0, 0, 0),   /* MAMBO BRASS */
+    FSND(CAT_BRASS, 2, ENG_FM, 4, 55, 60, 4, 35, 80, 115, 45, 0, 0x00, 75, 4, 0, 0),   /* TROMBONE SALSA */
+    FSND(CAT_BRASS, 3, ENG_VA, 0, 20, 70, 20, 5, 50, 60, 30, 0, 0x00, 40, 0, 0, 0),   /* TRUMPET STAB */
+    FSND(CAT_BRASS, 4, ENG_FM, 3, 64, 64, 6, 25, 80, 110, 40, 0, 0x00, 80, 6, 0, 0),   /* SAX MERENGUE */
+    FSND(CAT_ORGAN, 1, ENG_WHEEL, 4, 1, 40, 30, 0, 40, 127, 30, 0, 0x00, 40, 0, 0, 0),   /* BOOGALOO ORGAN */
+    FSND(CAT_ORGAN, 2, ENG_WHEEL, 8, 0, 20, 10, 0, 40, 127, 35, 0, 0x00, 40, 0, 0, 0),   /* SALSA ORGAN */
+    FSND(CAT_ORGAN, 3, ENG_WHEEL, 2, 1, 60, 50, 0, 66, 25, 35, 0, 0x00, 40, 0, 0, 0),   /* SKANK ORGAN */
+    FSNDL(CAT_KEYS, 1, ENG_FM, 5, 64, 64, 10, 0, 90, 127, 50, 0, 0x00, 40, 0, 0, 0, 2, 2),   /* MONTUNO PIANO */
+    FSND(CAT_KEYS, 2, ENG_FM, 5, 58, 70, 6, 0, 100, 127, 55, 0, 0x00, 40, 0, 0, 0),   /* SALON PIANO */
+    FSNDL(CAT_KEYS, 3, ENG_FM, 5, 70, 55, 8, 0, 90, 127, 45, 0, 0x00, 40, 0, 0, 0, 3, 2),   /* GUAJEO PIANO */
+    FSND(CAT_KEYS, 4, ENG_PHASE, 3, 0, 50, 6, 0, 95, 60, 70, 0, 0x00, 70, 15, 1, 0),   /* BOLERO EP */
+    FSNDL(CAT_BASS, 1, ENG_FM, 7, 64, 64, 0, 0, 70, 110, 40, 0, 0x00, 40, 0, 0, 0, 1, 1),   /* TUMBAO BASS */
+    FSND(CAT_BASS, 2, ENG_FM, 7, 56, 70, 4, 0, 80, 100, 45, 0, 0x00, 40, 0, 0, 0),   /* BABY BASS */
+    FSNDL(CAT_BASS, 3, ENG_VA, 0, 0, 80, 30, 0, 60, 70, 35, 0, 0x00, 40, 0, 0, 0, 4, 1),   /* MERENGUE BASS */
+    FSNDL(CAT_BASS, 4, ENG_FM, 7, 70, 60, 0, 0, 85, 110, 50, 0, 0x00, 40, 0, 0, 0, 5, 1),   /* BACHATA BASS */
+    FSND(CAT_BASS, 5, ENG_VA, 0, 0, 48, 15, 0, 95, 90, 60, 0, 0x00, 40, 0, 0, 0),   /* 808 BOOM */
+    FSNDL(CAT_BASS, 6, ENG_FM, 7, 50, 82, 2, 0, 85, 100, 50, 0, 0x00, 40, 0, 0, 0, 1, 1),   /* SALSA UPRIGHT */
+    FSND(CAT_STRINGS, 1, ENG_FM, 6, 64, 64, 8, 0, 100, 127, 55, 0, 0x00, 40, 0, 0, 0),   /* CUATRO */
+    FSNDL(CAT_STRINGS, 2, ENG_FM, 6, 70, 60, 10, 0, 95, 127, 50, 0, 0x00, 40, 0, 0, 0, 3, 2),   /* CUATRO GUAJEO */
+    FSND(CAT_STRINGS, 3, ENG_FM, 6, 76, 55, 14, 0, 100, 127, 55, 0, 0x00, 40, 0, 0, 0),   /* TRES CUBANO */
+    FSND(CAT_STRINGS, 4, ENG_FM, 6, 50, 72, 4, 0, 100, 127, 55, 0, 0x00, 40, 0, 0, 0),   /* REQUINTO */
+    FSND(CAT_STRINGS, 5, ENG_FM, 6, 80, 50, 14, 0, 90, 40, 55, 0, 0x00, 90, 4, 0, 0),   /* BACHATA GUITAR */
     FSNDP(1, 0, 64, 64, 30, 3, 2),   /* SALSA DURA */
-    FSND(CAT_DRONE, 6, ENG_FM, 1, 50, 64, 12, 95, 90, 120, 100, 1, 0x05, 40, 0, 0, 0),      /* DEEP WELL */
-    /* BELLS & METAL */
-    FSND(CAT_BELL, 1, ENG_FM, 0, 64, 90, 10, 0, 120, 0, 110, 0, 0x00, 40, 0, 0, 0),         /* IRON BELL */
-    FSND(CAT_BELL, 2, ENG_FM, 0, 80, 50, 0, 0, 100, 0, 95, 0, 0x00, 40, 0, 0, 0),           /* FUNERAL CHIME */
-    FSND(CAT_BELL, 3, ENG_PHYS, 0, 110, 115, 0, 0, 90, 127, 110, 0, 0x00, 40, 0, 0, 0),     /* RUST GONG */
-    FSND(CAT_BELL, 4, ENG_FM, 0, 85, 30, 20, 80, 100, 70, 95, 0, 0x00, 40, 0, 0, 0),        /* GLASS HARP */
-    FSND(CAT_BELL, 5, ENG_PHYS, 0, 70, 110, 45, 85, 90, 90, 100, 0, 0x00, 40, 0, 0, 0),     /* BOWED BELL */
-    FSND(CAT_BELL, 6, ENG_FM, 0, 110, 20, 30, 0, 70, 0, 70, 0, 0x00, 40, 0, 0, 0),          /* SHRINE */
-    /* PERC (COQUÍ: the Latin kits, where GR!MM had its choirs) */
     FSNDP(2, 1, 64, 64, 15, 2, 2),   /* PERREO 2004 */
     FSNDP(3, 2, 64, 70, 40, 8, 2),   /* BOMBA SICA */
     FSNDP(4, 3, 70, 60, 50, 10, 2),   /* PLENA CALLE */
     FSNDP(5, 3, 64, 55, 25, 11, 2),   /* MERENGUE */
-    FSND(CAT_PAD, 7, ENG_FM, 2, 70, 64, 40, 85, 90, 115, 95, 0, 0x12, 95, 1, 0, 0),       /* HOLLOW HYMN */
-    /* ORGANS & KEYS */
-    FSND(CAT_ORGAN, 1, ENG_WHEEL, 15, 0, 20, 10, 10, 20, 75, 60, 0, 0x00, 40, 0, 0, 0),     /* FUNERAL ORGAN */
-    FSND(CAT_ORGAN, 2, ENG_WHEEL, 12, 0, 10, 0, 10, 90, 127, 55, 0, 0x00, 40, 0, 0, 0),     /* CHAPEL */
-    FSND(CAT_KEYS, 1, ENG_FM, 0, 45, 10, 5, 0, 75, 0, 50, 0, 0x00, 40, 0, 0, 0),            /* DEAD HARPSICHORD */
-    FSND(CAT_KEYS, 2, ENG_FM, 0, 90, 20, 0, 0, 75, 0, 60, 0, 0x00, 40, 0, 0, 0),            /* MUSIC BOX */
-    FSND(CAT_KEYS, 3, ENG_PHASE, 3, 0, 30, 6, 0, 105, 20, 80, 0, 0x00, 40, 0, 0, 0),        /* CATHEDRAL KEYS */
-    FSND(CAT_KEYS, 4, ENG_PHYS, 0, 30, 75, 0, 0, 90, 127, 60, 0, 0x00, 40, 0, 0, 0),        /* BONE PIANO */
-    /* STRINGS & BRASS */
-    FSND(CAT_OTHER, 1, ENG_PHYS, 1, 64, 110, 70, 100, 100, 65, 95, 0, 0x00, 40, 0, 0, 0),   /* HAUNTED STRINGS */
-    FSND(CAT_OTHER, 2, ENG_VA, 0, 20, 70, 15, 65, 85, 105, 75, 0, 0x00, 100, 1, 0, 0),      /* DUNGEON BRASS */
-    FSND(CAT_OTHER, 3, ENG_FM, 3, 85, 64, 15, 75, 90, 115, 85, 0, 0x00, 40, 0, 0, 0),       /* WAR HORN */
-    FSND(CAT_OTHER, 4, ENG_PHYS, 1, 50, 115, 60, 85, 95, 70, 95, 0, 0x00, 95, 1, 0, 0),     /* CELLO GRAVE */
-    FSND(CAT_OTHER, 5, ENG_VA, 2, 40, 75, 5, 90, 90, 115, 95, 0, 0x00, 70, 1, 0, 0),        /* SORROW STRINGS */
-    /* LEADS & PLUCKS */
-    FSND(CAT_KEYS, 5, ENG_PHASE, 6, 0, 90, 0, 30, 90, 110, 80, 0, 0x00, 105, 1, 0, 0),      /* WRAITH */
-    FSND(CAT_KEYS, 6, ENG_VA, 1, 6, 55, 10, 40, 90, 110, 75, 0, 0x00, 40, 0, 0, 0),         /* LANTERN */
-    FSND(CAT_KEYS, 7, ENG_FM, 0, 40, 10, 0, 0, 55, 0, 30, 0, 0x00, 40, 0, 0, 0),            /* SPIDER PLUCK */
-    FSND(CAT_KEYS, 8, ENG_PHYS, 3, 0, 85, 0, 0, 90, 127, 60, 0, 0x00, 40, 0, 0, 0),         /* LUTE */
-    FSND(CAT_KEYS, 9, ENG_PHASE, 3, 0, 40, 4, 80, 90, 70, 80, 0, 0x00, 100, 1, 0, 0),       /* CANDLE */
-    /* TEXTURES */
     FSNDP(6, 3, 60, 70, 45, 13, 2),   /* CUMBIA */
-    /* (V2) CHOIRS: VOICE's choir TYPEs (real singers' cycles), a clear vowel (O, A), BUZZ (their tone) warm to open, a
-     * little BREATH, SHIFT their spread, ATTACK ~0.3 .. 0.45 s, a long RELEASE (~5 .. 8 s), no LFO; chord mode OFF (rc12: a
-     * factory sound never switches it on), their CHORD TYPE and VOICING set for it: parallel fifths (organum), minor
-     * chords. SPACE isn't a sound's (the project's, the track's REV send): the
-     * manual says how to set it */
     FSNDP(7, 0, 66, 75, 20, 6, 2),   /* MAMBO */
     FSNDP(8, 0, 62, 60, 35, 12, 2),   /* BACHATA */
     FSNDP(9, 1, 60, 80, 5, 1, 2),   /* DEMBOW */
     FSNDP(10, 2, 56, 100, 60, 9, 2),   /* BARRIL LENTO */
+    FSND(CAT_OTHER, 1, ENG_FM, 0, 70, 40, 10, 0, 90, 0, 60, 0, 0x00, 40, 0, 0, 0),   /* STEEL PAN */
+    FSND(CAT_OTHER, 2, ENG_PHYS, 0, 30, 90, 0, 0, 100, 127, 50, 0, 0x00, 40, 0, 0, 0),   /* MARIMBA */
+    FSND(CAT_OTHER, 3, ENG_FM, 0, 40, 50, 0, 0, 95, 0, 80, 0, 0x00, 70, 15, 1, 0),   /* VIBRAFONO */
+    FSND(CAT_OTHER, 4, ENG_VA, 1, 0, 25, 0, 30, 80, 115, 40, 0, 0x00, 85, 8, 0, 0),   /* SILBIDO */
+    FSND(CAT_OTHER, 5, ENG_VA, 1, 0, 60, 0, 40, 80, 115, 40, 0, 0x00, 80, 6, 0, 0),   /* FLAUTA CHARANGA */
 };
 static const char *const SND_FNAME[] = {
-    "CRYPT PAD", "ASH VEIL", "FROZEN HALL", "LAST LIGHT", "MOSS", "BLACK VELVET",
-    "MONK DRONE", "ABYSS", "IRON LUNG", "TOMB HUM", "SALSA DURA", "DEEP WELL",
-    "IRON BELL", "FUNERAL CHIME", "RUST GONG", "GLASS HARP", "BOWED BELL", "SHRINE",
-    "PERREO 2004", "BOMBA SICA", "PLENA CALLE", "MERENGUE", "HOLLOW HYMN",
-    "FUNERAL ORGAN", "CHAPEL", "DEAD HARPSICHORD", "MUSIC BOX", "CATHEDRAL KEYS", "BONE PIANO",
-    "HAUNTED STRINGS", "DUNGEON BRASS", "WAR HORN", "CELLO GRAVE", "SORROW STRINGS",
-    "WRAITH", "LANTERN", "SPIDER PLUCK", "LUTE", "CANDLE",
-    "CUMBIA",
-    "MAMBO", "BACHATA", "DEMBOW", "BARRIL LENTO",
+    "DEMBOW LEAD", "PERREO PLUCK", "TROPICAL SYNTH", "NOCHE PAD", "BRISA", "MAR CALMO", "MALECON PAD",
+    "MAMBO BRASS", "TROMBONE SALSA", "TRUMPET STAB", "SAX MERENGUE", "BOOGALOO ORGAN", "SALSA ORGAN", "SKANK ORGAN",
+    "MONTUNO PIANO", "SALON PIANO", "GUAJEO PIANO", "BOLERO EP", "TUMBAO BASS", "BABY BASS", "MERENGUE BASS",
+    "BACHATA BASS", "808 BOOM", "SALSA UPRIGHT", "CUATRO", "CUATRO GUAJEO", "TRES CUBANO", "REQUINTO",
+    "BACHATA GUITAR", "SALSA DURA", "PERREO 2004", "BOMBA SICA", "PLENA CALLE", "MERENGUE", "CUMBIA", "MAMBO",
+    "BACHATA", "DEMBOW", "BARRIL LENTO", "STEEL PAN", "MARIMBA", "VIBRAFONO", "SILBIDO", "FLAUTA CHARANGA",
 };   /* (16 characters at most: the header beside HOME's tempo) */
 #define SND_NFACT (sizeof SND_FACTORY / sizeof SND_FACTORY[0])
 _Static_assert(SND_NFACT == sizeof SND_FNAME / sizeof SND_FNAME[0], "a name a factory sound");
@@ -268,7 +257,7 @@ static const uint8_t *snd_rec(uint32_t i)       /* slot i's record, or 0 (empty)
     const uint8_t *f = save_flash(0);
     return f && i < SND_N ? snd_ok(f + i * SND_SIZE) : 0;
 }
-static char *snd_rec_name(const uint8_t *r, char *s)   /* "DRONE 03"; its name from the editor (bytes 50..59), if it
+static char *snd_rec_name(const uint8_t *r, char *s)   /* "LEAD 03"; its name from the editor (bytes 50..59), if it
                                                  * has one; a factory sound's: its name */
 {
     uint32_t k, n = 0;
@@ -370,6 +359,16 @@ static void snd_apply(const uint8_t *r, uint32_t t)   /* a sound record into tra
     if (e == ENG_PERC) {                        /* (COQUÍ: its GROOVE; FEEL 0 stored as 64, a record without: 0 0 0 0) */
         trk[t].grv_style = clamp(r[18], 0, (int32_t)NSTYLE), trk[t].grv_parts = clamp(r[19], 0, GP_N - 1);
         trk[t].grv_fill = clamp(r[20], 0, 3), trk[t].grv_feel = r[21] ? clamp((int32_t)r[21] - 64, -64, 63) : 0;
+    }
+    if (snd_fname(r)) {                         /* (COQUÍ) a factory sound's ARP line (FSNDL): the ARP on in its mode and
+                                                 * register; another factory sound: a Latin line left playing goes off
+                                                 * (a user's sound leaves the ARP alone: sounds never kept it) */
+        uint32_t line = e != ENG_PERC ? r[26] : 0u;
+        if (line >= 1u && line <= ARP_NLAT) {
+            trk[t].arp_mode = (int32_t)(ARP_TUMBAO + line - 1u), trk[t].arp_oct = clamp(r[27], 1, 4);
+            trk[t].arp_rate = 4, trk[t].arp_gate = 90, trk[t].arp = 1;
+        } else if (trk[t].arp && trk[t].arp_mode >= ARP_TUMBAO)
+            trk[t].arp = 0;
     }
     if ((uint32_t)trk[t].eng != e) {
         trk[t].eng = (int32_t)e;

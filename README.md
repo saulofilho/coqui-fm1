@@ -26,6 +26,10 @@ Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#cred
 - **GROOVE**: a PERC track plays a whole style by itself while the sequencer runs: DEMBOW, PERREO, SALSA 2-3, SALSA 3-2,
   SON, MAMBO, CHACHA, BOMBA SICA, BOMBA YUBA (6/8), PLENA, MERENGUE, BACHATA, CUMBIA, SOCA; with PARTS (the kit, the
   hands, the bells: split a style over two tracks), FILL (every 2, 4 or 8 bars) and FEEL (swing)
+- **The lines**: the ARP plays a TUMBAO bass, a piano MONTUNO, a GUAJEO, MERENGUE and BACHATA bass over the chord
+  you hold (even one key), on the groove's bars
+- **44 factory sounds** made for it: baby bass, montuno piano, cuatro, tres, mambo brass, boogaloo organ, steel pan…;
+  the bass and piano ones bring their line (turn PRESETS to TUMBAO BASS, hold C, press PLAY)
 - **10 factory kits**, each with its groove: SALSA DURA, PERREO 2004, BOMBA SICA, PLENA CALLE, MERENGUE, CUMBIA, MAMBO,
   BACHATA, DEMBOW, BARRIL LENTO
 - **PERC plays its own hits**: up to 10 at once, never taking the six voices the bass and keys tracks share; a drum
