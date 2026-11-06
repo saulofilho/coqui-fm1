@@ -1,6 +1,6 @@
 # COQUÍ manual
 
-Version 0.1 · for the M-VAVE FM-1
+Version 1.0 · for the M-VAVE FM-1
 
 COQUÍ is built on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2. This manual covers what COQUÍ adds and changes.
 Everything else (the four tracks, HOME and the mixer, SEQ, ARP, SEL's scales and chords, GLO's song mode, FX and

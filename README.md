@@ -4,8 +4,8 @@
 congas, bongos, timbales, güiro, clave and cowbell, all synthesized on the FM-1, played by hand or by the sequencer,
 with a HUMAN knob that loosens the hand.
 
-> **Status: 0.1, in development.** Not yet tested on a real FM-1 and not yet on the
-> [FM-1 Firmware Hub](https://thefirmwarehub.com). Install at your own risk.
+> **Version 1.0.** Tested on a real FM-1: installed from the official V15 and from another firmware, left again,
+> an interrupted update resumed ([the results](docs/TESTE-RESULTADO-1.0.md)). Unofficial: install at your own risk.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
 
@@ -92,7 +92,7 @@ the test on a real FM-1 the hub asks for (in Portuguese).
 `hub/` is the [hub](https://saulofilho.github.io/coqui-fm1/) (GitHub Pages, `.github/workflows/pages.yml`). Its sounds and
 data come from the firmware itself: after a change to PERC or GROOVE, `tests/run_host.sh` then
 `python3 tools/gen_hub.py` (needs ffmpeg, or `pip install imageio-ffmpeg`) makes `hub/audio/` and `hub/coqui-data.js`
-again. The web emulator (`hub/emu/`) is the firmware itself compiled to WebAssembly: `APP_VER=0.1 web/build_web.sh`
+again. The web emulator (`hub/emu/`) is the firmware itself compiled to WebAssembly: `APP_VER=1.0 web/build_web.sh`
 (the [Emscripten SDK](https://emscripten.org) in `~/emsdk`) before `gen_hub.py`, which copies it in;
 `node web/test_web.mjs --emulator` (Node 22 or newer: the SDK's own, `~/emsdk/node/*/bin/node`) checks it against
 host mode, sample for sample and pixel for pixel. To look at it all: `cd hub && python3 -m http.server`.

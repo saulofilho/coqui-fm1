@@ -50,7 +50,7 @@ SDK_SHA256 = {
 
 PRODUCT = "FM-1_923"                # COQUÍ: 923, every release (free on the hub, 2026-11-05; FM-1_9NN: the installers resume its loader)
 VERSION = None                      # APP_VER for release builds (else DEFAULT_VERSION)
-DEFAULT_VERSION = "0.1"
+DEFAULT_VERSION = "1.0"
 DEFINES = []                        # --define: a test build's -D names for the app
 RAM_FREE_MIN = 4096                 # (V2) RAM after .data + .bss: at least this free
 STACK_FREE_MIN = 4096               # (V2) each stack (firmware/app.ld) its worst case (tools/stack_check.py) at least

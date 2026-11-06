@@ -24,8 +24,11 @@ I'd like to submit COQUÍ for the FM-1 Firmware Hub.
 - Newer FM-1s: both flash IDs accepted (0x856014 and 0xB36014)
 - fmhub.json: in the repository root (card: docs/card.png; play: the web emulator)
 
-Tested on a real FM-1: installed from the official V15 and from another firmware, left again by installing another
-firmware over it, answering FM-1_923 over USB, and an interrupted update resumed. [ajustar com o que o teste mostrou]
+Tested on a real FM-1 (2026-11-06): installed from the official V15 (FM-1_015) and from another firmware (GR!MM,
+FM-1_966), left again by installing GR!MM over it from the hub, answering FM-1_923 over USB, an interrupted update
+resumed by the installer (its loader in update mode, the write finished), the USB rescue (OCT- at power-on) working. The
+heaviest scene I could build (four tracks, the groove, two ARP lines, GENERATE, the dub delay) peaks at 47 % of the audio
+block. The results: https://github.com/saulofilho/coqui-fm1/blob/main/docs/TESTE-RESULTADO-1.0.md
 
 Thanks for the hub!
 
