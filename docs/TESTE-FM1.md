@@ -12,13 +12,17 @@ Anote o resultado de cada passo (✅ / ❌ e o que viu) na tabela do fim: é ela
   importa com as ferramentas do firmware que está no FM-1 agora.
 - **Windows, Chrome ou Edge**, o FM-1 num cabo USB de dados (não só de carga).
 - **O pacote:** `build/coqui.fwsc` (`./build.sh` no WSL) ou o `.fwsc` de um release. Copie para uma pasta do Windows.
-- **Python no Windows** (não no WSL: o WSL não enxerga o MIDI USB), uma vez:
+- **Python 3.12 no Windows** (não no WSL: o WSL não enxerga o MIDI USB). O `python-rtmidi` só tem pacote pronto para
+  Windows até o 3.12; num Python mais novo o pip tenta compilar e falha ("Unknown compiler"). Com o Chocolatey, num
+  PowerShell de administrador, e depois num PowerShell normal:
 
   ```
-  py -m pip install mido python-rtmidi
+  choco install python312 -y
+  py -3.12 -m pip install mido python-rtmidi
   ```
 
-  Os comandos abaixo rodam no PowerShell, dentro de uma cópia do repositório no Windows (ou com o caminho de `tools\`).
+  Os comandos abaixo usam `py -3.12` e rodam numa pasta do Windows com o `coqui.fwsc` e a pasta `tools\` do repositório
+  (ex.: `C:\Users\<você>\coqui-fm1-teste`).
 - **Saber o modelo do flash:** FM-1s vendidos desde o outono de 2026 têm outro chip (UC25HQ80). O COQUÍ aceita os dois;
   se o seu for novo, o passo 9 é o que mais importa.
 - **Se algo der errado:** segure **OCT−** ao ligar (rescue USB do COQUÍ); se nem isso, a página **Rescue** do Firmware
@@ -30,11 +34,11 @@ Anote o resultado de cada passo (✅ / ❌ e o que viu) na tabela do fim: é ela
 | # | Passo | Como | O que deve acontecer |
 |---|---|---|---|
 | 1 | Partir do oficial | Instale o V15 oficial da M-VAVE (Hub > Rescue, ou o updater da M-VAVE) | O FM-1 liga no firmware oficial |
-| 2 | Instalar a partir do V15 | `py tools\fm1_install.py coqui.fwsc` | Instala sem erro, reinicia, a tela de boot mostra o coquí cantando |
-| 3 | Identidade | `py tools\fm1_install.py --info` | Responde `FM-1_923` |
+| 2 | Instalar a partir do V15 | `py -3.12 tools\fm1_install.py coqui.fwsc` | Instala sem erro, reinicia, a tela de boot mostra o coquí cantando |
+| 3 | Identidade | `py -3.12 tools\fm1_install.py --info` | Responde `FM-1_923` |
 | 4 | Sair do COQUÍ | Instale outro firmware por cima (ex.: GR!MM ou Felucca pelo Hub) | Instala normalmente; o outro firmware liga |
 | 5 | Instalar a partir de outro firmware | Com esse outro firmware no FM-1, instale o COQUÍ de novo (passo 2) | Instala; o COQUÍ liga |
-| 6 | Atualização interrompida | Comece `py tools\fm1_install.py coqui.fwsc` e **tire o cabo USB no meio** da escrita; recoloque; rode o mesmo comando de novo | O instalador retoma e termina; o COQUÍ liga |
+| 6 | Atualização interrompida | Comece `py -3.12 tools\fm1_install.py coqui.fwsc` e **tire o cabo USB no meio** da escrita; recoloque; rode o mesmo comando de novo | O instalador retoma e termina; o COQUÍ liga |
 | 7 | Rescue | Desligue, segure **OCT−** e ligue | Entra no modo de rescue USB; uma instalação funciona dali |
 | 8 | Voltar ao oficial | Hub > Rescue (ou M-VAVE) com o COQUÍ instalado | O oficial volta (o caminho de saída existe) |
 
@@ -66,7 +70,7 @@ ou notas cortadas (o cabeçalho diz CPU FULL: NOTE DROPPED).
 2. Com ela tocando há uns 20 s, rode:
 
    ```
-   py tools\fm1_cpu.py --health
+   py -3.12 tools\fm1_cpu.py --health
    ```
 
    (ou veja a última linha de SYSTEM 2: segure HOME e aperte HOME até SYSTEM 2: CPU NOW / PEAK)
