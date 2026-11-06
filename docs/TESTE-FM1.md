@@ -54,6 +54,7 @@ Anote o resultado de cada passo (✅ / ❌ e o que viu) na tabela do fim: é ela
 | 18 | Áudio USB | No computador, escolha "FM-1" como entrada e grave | O som do FM-1 chega ao computador |
 | 19 | Fone / saída | Fone e saída de linha | Som limpo, sem estalos |
 | 20 | Bateria | Use sem USB | O ícone de bateria aparece no topo da HOME |
+| 21 | Editor | No Chrome: hub > EDITOR > CONNECT FM-1 (USB) | Lista os sons; um slider do SOUND EDITOR muda o som no FM-1 ao vivo; BACKUP baixa um arquivo |
 
 ## Parte C: o processador (o que só o aparelho mede)
 
@@ -79,7 +80,7 @@ densidade do FIESTA.
 | # | ✅/❌ | O que viu |
 |---|---|---|
 | 1–8 | | |
-| 9–20 | | |
+| 9–21 | | |
 | CPU | | NOW __ % · PEAK __ % · VOICES __ % |
 | Flash | | novo (UC25HQ80) / antigo / não sei |
 | Ouvido | | o que soou estranho (um tambor, um groove, uma linha, um som de fábrica) |

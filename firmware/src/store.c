@@ -356,9 +356,9 @@ static void snd_apply(const uint8_t *r, uint32_t t)   /* a sound record into tra
     lfo_uk(r + 14, t);                          /* (saved before the LFO: zeros, DEPTH 0) */
     if (e == ENG_FM) uk_fm(snd_fname(r) ? 0 : r + 18, t);   /* (FM: its patch; a factory sound's: the PATCH as built) */
     if (e == ENG_PHASE) pd_uk(r + 18, t);       /* (V2: saved before: zeros, all as before) */
-    if (e == ENG_PERC) {                        /* (COQUÍ: its GROOVE; FEEL 0 stored as 64, a record without: 0 0 0 0) */
+    if (e == ENG_PERC) {                        /* (COQUÍ: its GROOVE; FEEL stored + 64: every PERC record has it) */
         trk[t].grv_style = clamp(r[18], 0, (int32_t)NSTYLE), trk[t].grv_parts = clamp(r[19], 0, GP_N - 1);
-        trk[t].grv_fill = clamp(r[20], 0, 3), trk[t].grv_feel = r[21] ? clamp((int32_t)r[21] - 64, -64, 63) : 0;
+        trk[t].grv_fill = clamp(r[20], 0, 3), trk[t].grv_feel = clamp((int32_t)r[21] - 64, -64, 63);
     }
     if (snd_fname(r)) {                         /* (COQUÍ) a factory sound's ARP line (FSNDL): the ARP on in its mode and
                                                  * register; another factory sound: a Latin line left playing goes off

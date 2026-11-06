@@ -6,7 +6,7 @@
   hub/coqui-data.js   the styles (firmware/src/groove.c: names, steps, lanes, fills), the keys (perc.c), the version
   hub/audio/style-NN.mp3   each GROOVE style, four bars on its factory kit at its own tempo, as host mode plays it
   hub/audio/keys.mp3       the 27 keys of KIT SALSA one after another (coqui-data.js: where each starts)
-  hub/emu/            the web emulator (web/build_web.sh's web/dist, the editor left out: not made COQUÍ's yet)
+  hub/emu/            the web emulator and the editor (web/build_web.sh's web/dist)
 
 Needs a host build (build/host/coqui: tests/run_host.sh makes it) and ffmpeg (FFMPEG, or the venv's imageio-ffmpeg).
   python3 tools/gen_hub.py [--version 0.1]
@@ -120,11 +120,12 @@ def mp3(ff, raw, ch, dst, fade_ms=600):
     os.unlink(t.name)
 
 
-EMU_FILES = ["index.html", "panel.js", "worklet.js", "coqui.wasm", "Terminus-LICENSE.txt", "LICENSE", "LICENSING.md"]
+EMU_FILES = ["index.html", "panel.js", "worklet.js", "coqui.wasm", "Terminus-LICENSE.txt", "LICENSE", "LICENSING.md",
+             "editor.html", "editor.js", "editor_core.js", "PressStart2P-Regular.ttf"]   # (the editor beside the emulator)
 
 
 def copy_emu():
-    """web/dist (web/build_web.sh) -> hub/emu: the web emulator and its licences, the editor's pages left out"""
+    """web/dist (web/build_web.sh) -> hub/emu: the web emulator, the editor (editor.html) and their licences"""
     dist = ROOT / "web" / "dist"
     if not (dist / "coqui.wasm").exists():
         print("emu: no web/dist/coqui.wasm (run APP_VER=X web/build_web.sh first): hub/emu left as it is")

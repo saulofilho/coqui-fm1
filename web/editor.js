@@ -10,7 +10,7 @@
 import { Client, MidiTransport, VirtualFM1, LiveSender, findFM1, HEAD, CMD, OBJ, PROTOS, EditorError, emptyRecord, isEmpty,
          recordOk, parseSound, buildRecord, soundTitle, makeBackup, checkBackup, restoreBackup, makeSlot, noteFromName,
          sampleName, noteName, pack7, hex, SET_V1, SET_V2, MCH_NAMES, CLOCK_NAMES, settingsOf, withSettings,
-         sameSettings, FX_PAGES, FT_NAMES, checkSamples, restoreSamples, VOICE_TYPES, LINE2_WAVES, V2_SOUND_CONTROLS, PHASE_PD0,
+         sameSettings, FX_PAGES, FT_NAMES, checkSamples, restoreSamples, GROOVE_STYLES, GROOVE_PARTS, GROOVE_FILLS, LINE2_WAVES, V2_SOUND_CONTROLS, PHASE_PD0,
          glideText, decayText, pctText, PITCH_TEXT, SEQ, DIV_NAMES, MODE_NAMES, emptyPattern, emptyStep, patternsFromSlot,
          patternsFromWork, slotWithPatterns, slotFromWork, slotTrack, patternFile, parsePatternFile, recallScript, stopScript,
          BTN_PLAY, b64, recWrite, recRest, recTie, makeGrouper, pcKeyNote } from "./editor_core.js";
@@ -90,7 +90,7 @@ function show(s) {
 }
 document.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); show(a.dataset.s); history.replaceState(null, "", "#" + a.dataset.s); }));
 
-// ------------------------------------------------------------------ the engine: GR!MM in an AudioWorklet (sound, screen)
+// ------------------------------------------------------------------ the engine: COQUÍ in an AudioWorklet (sound, screen)
 let ac = null, node = null, engReady = null;
 const scr = $("screen").getContext("2d"), img = scr.createImageData(240, 240);
 function screenText(lines) {
@@ -145,17 +145,17 @@ function setConn(c) {
   if ($("fx").childElementCount) drawFx();
   if ($("set-mch").options.length) drawSettings();
   const s = $("conn");
-  s.textContent = !c ? "NOT CONNECTED" : c.kind === "virtual" ? `VIRTUAL FM-1 · GR!MM ${c.info.firmware}` : `FM-1 · GR!MM ${c.info.firmware}`;
+  s.textContent = !c ? "NOT CONNECTED" : c.kind === "virtual" ? `VIRTUAL FM-1 · COQUÍ ${c.info.firmware}` : `FM-1 · COQUÍ ${c.info.firmware}`;
   s.classList.toggle("on", !!c);
   const t = $("info");
   t.textContent = "";
-  if (!c) {                                                  // (not connected: this page's own GR!MM, which it plays and edits with)
-    [["THIS PAGE'S GR!MM", `GR!MM ${meta.version}`], ["FACTORY SOUNDS", meta.factory.length]]
+  if (!c) {                                                  // (not connected: this page's own COQUÍ, which it plays and edits with)
+    [["THIS PAGE'S COQUÍ", `COQUÍ ${meta.version}`], ["FACTORY SOUNDS", meta.factory.length]]
       .forEach(([k, v]) => { const r = el("tr", {}, t); el("td", {}, r, k); el("td", {}, r, String(v)); });
   } else {
     const i = c.info;
     [["CONNECTED TO", c.kind === "virtual" ? "THE VIRTUAL FM-1 (THIS PAGE)" : `THE FM-1 OVER USB (${c.transport.output.name})`],
-     ["FIRMWARE", "GR!MM " + i.firmware], ["EDITOR PROTOCOL", i.proto + (c.live ? " (LIVE EDITING)" : " (NO LIVE EDITING: INSTALL 26B2)")],
+     ["FIRMWARE", "COQUÍ " + i.firmware], ["EDITOR PROTOCOL", i.proto + (c.live ? " (LIVE EDITING)" : " (NO LIVE EDITING)")],
      ["USER SOUND SLOTS", i.sounds], ["FACTORY SOUNDS", i.factory], ["SAMPLE SLOTS IN USE", `${i.samplesUsed} OF ${i.sampleSlots}`]]
       .forEach(([k, v]) => { const r = el("tr", {}, t); el("td", {}, r, k); el("td", {}, r, String(v)); });
   }
@@ -167,9 +167,9 @@ async function connectFM1() {
   await job("CONNECT", async () => {
     say("ASKING FOR MIDI ACCESS…");
     const access = await navigator.requestMIDIAccess({ sysex: true });
-    say("LOOKING FOR GR!MM ON THE MIDI PORTS…");
+    say("LOOKING FOR COQUÍ ON THE MIDI PORTS…");
     const p = await findFM1(access, midiLog);
-    if (!p) throw new EditorError("NO FM-1 WITH GR!MM FOUND (USB DATA CABLE? ANOTHER APP ON ITS MIDI PORT?) SEE THE MIDI LOG", 0);
+    if (!p) throw new EditorError("NO FM-1 WITH COQUÍ FOUND (USB DATA CABLE? ANOTHER APP ON ITS MIDI PORT?) SEE THE MIDI LOG", 0);
     const transport = new MidiTransport(p.input, p.output, midiLog), client = new Client(transport), info = await client.info();
     if (!PROTOS.includes(info.proto)) throw new EditorError(`THE FM-1 SPEAKS EDITOR PROTOCOL ${info.proto}; THIS PAGE KNOWS ${PROTOS.join(" AND ")}`, 0);
     setConn({ client, info, kind: "fm1", transport, live: info.proto >= 2 });
@@ -183,7 +183,7 @@ async function tryVirtual() {
     vf.warmUp();
     const info = await vfc.info();
     setConn({ client: vfc, info, kind: "virtual", transport: vf, live: true });
-    return afterConnect(false, "(THE VIRTUAL FM-1: GR!MM'S OWN CODE IN THIS PAGE, NOTHING IS KEPT)");
+    return afterConnect(false, "(THE VIRTUAL FM-1: COQUÍ'S OWN CODE IN THIS PAGE, NOTHING IS KEPT)");
   });
 }
 // connected: the FM-1's four tracks into the page (the virtual one takes the page's), then its user slots
@@ -207,8 +207,8 @@ async function afterConnect(read, where) {
   drawTracks(), drawEditor(), drawSlots();
   show("editor");
   history.replaceState(null, "", "#editor");
-  return `CONNECTED ${where}: GR!MM ${conn.info.firmware}` + (conn.live ? `, TRACK ${selT + 1} IN THE EDITOR (LIVE)` :
-    ": ITS GR!MM IS OLDER THAN 26B2, SO THE SLIDERS PLAY ONLY HERE; SOUNDS, SAMPLES, BACKUP WORK");
+  return `CONNECTED ${where}: COQUÍ ${conn.info.firmware}` + (conn.live ? `, TRACK ${selT + 1} IN THE EDITOR (LIVE)` :
+    ": NO LIVE EDITING ON THIS FM-1, SO THE SLIDERS PLAY ONLY HERE; SOUNDS, SAMPLES, BACKUP WORK");
 }
 $("b-connect").onclick = connectFM1;
 $("b-try").onclick = tryVirtual;
@@ -277,7 +277,7 @@ function drawTracks() {
 function drawTitle() {
   const s = tracks[selT];
   $("ed-title").textContent = `T${selT + 1}: ${s ? trackName(selT) : ""}` + (s && JSON.stringify(s) !== loaded[selT] ? " *" : "");
-  $("ed-from").textContent = from[selT] + (conn && conn.live ? ` · LIVE ON THE ${conn.kind === "virtual" ? "VIRTUAL " : ""}FM-1` : conn ? " · HERE ONLY (THE FM-1'S GR!MM HAS NO LIVE EDITING)" : " · HERE ONLY (NOT CONNECTED)");
+  $("ed-from").textContent = from[selT] + (conn && conn.live ? ` · LIVE ON THE ${conn.kind === "virtual" ? "VIRTUAL " : ""}FM-1` : conn ? " · HERE ONLY (THE FM-1'S COQUÍ HAS NO LIVE EDITING)" : " · HERE ONLY (NOT CONNECTED)");
 }
 
 // ------------------------------------------------------------------ sounds
@@ -397,7 +397,7 @@ $("b-export").onclick = () => exportSound(pickRec(), pick.fact ? meta.factory[pi
 $("b-import").onclick = () => $("f-import").click();
 async function readSoundFile(f) {
   const j = JSON.parse(await f.text()), r = Uint8Array.from(j.rec || []);
-  if (j.format !== "coqui-sound" || r.length !== 64 || !recordOk(r)) throw new Error("NOT A GR!MM SOUND FILE");
+  if (j.format !== "coqui-sound" || r.length !== 64 || !recordOk(r)) throw new Error("NOT A COQUÍ SOUND FILE");
   return r;
 }
 $("f-import").onchange = async (e) => {
@@ -477,10 +477,17 @@ function drawEditor() {
     drawEditor(), drawTracks();
   });
   toggle(g, ["LATCH OFF", "LATCH ON"], () => s.latch, (v) => { s.latch = v; });
-  const V2 = V2_SOUND_CONTROLS;                               // (GR!MM 2.0's settings: names, ranges as on the FM-1)
+  const V2 = V2_SOUND_CONTROLS;                               // (the settings beyond the knobs: names, ranges as on the FM-1)
   control(g, V2.glide[0], V2.glide[1], V2.glide[2], () => s.glide || 0, (v) => { s.glide = v; }, glideText);   // (SOURCE's KNOB 4: every source)
-  if (s.eng === 3)                                           // (VOICE's TYPE, as SOURCE's KNOB 3)
-    choice(g, V2.vtype[0], VOICE_TYPES, () => s.vtype || 0, (v) => { s.vtype = v; });
+  if (s.eng === 3) {                                         // (COQUÍ: PERC's GROOVE, as its page on the FM-1)
+    s.grv = s.grv || { style: 0, parts: 0, fill: 0, feel: 0 };
+    const gg = el("div", { cls: "grp" }, ed), [gs, gp, gf, ge] = V2.grv;
+    el("h3", {}, gg, "GROOVE");
+    choice(gg, gs[0], GROOVE_STYLES, () => s.grv.style, (v) => { s.grv.style = v; });
+    choice(gg, gp[0], GROOVE_PARTS, () => s.grv.parts, (v) => { s.grv.parts = v; });
+    choice(gg, gf[0], GROOVE_FILLS, () => s.grv.fill, (v) => { s.grv.fill = v; });
+    control(gg, ge[0], ge[1], ge[2], () => s.grv.feel, (v) => { s.grv.feel = v; }, (v) => (v > 0 ? "+" : "") + v);
+  }
   if (s.eng === 6) {                                         // (PHASE's LINE 2 page, then PHASE ENV)
     s.pd = s.pd || { ...PHASE_PD0 };
     const p2 = el("div", { cls: "grp" }, ed), [lw, ld, lr, ln] = V2.line2;
@@ -709,7 +716,7 @@ function drawSamples() {
     const r = el("div", {}, d);
     el("div", { cls: "px" }, r, s.state === 1 ? `${s.name || "(NO NAME)"} · ${(s.n / 22050).toFixed(2)} S` +
       (s.root !== null ? ` · ROOT ${noteName(s.root)}` : "") : s.state === 2 ? "BEING CHECKED…" :
-      s.state < 0 ? "IN USE (ITS NAME DID NOT FIT IN THE FM-1'S ANSWER: GR!MM BEFORE 26B2)" : "EMPTY");
+      s.state < 0 ? "IN USE (ITS NAME DID NOT FIT IN THE FM-1'S ANSWER)" : "EMPTY");
     const drop = el("div", { cls: "drop px" }, r, "DROP A WAV HERE, OR CLICK");
     const file = el("input", { type: "file", accept: ".wav,audio/wav" }, r);
     file.hidden = true;
@@ -754,12 +761,12 @@ function drawSamples() {
 }
 $("b-sinfo").onclick = sampleInfo;
 $("b-sfactory").onclick = () => {                            // RESTORE: the four factory samples, over whatever is there
-  if (!confirm("RESTORE THE FACTORY SAMPLES?\n\nThis REPLACES all four sample slots on the FM-1 with GR!MM's factory samples " +
+  if (!confirm("RESTORE THE FACTORY SAMPLES?\n\nThis REPLACES all four sample slots on the FM-1 with COQUÍ's factory samples " +
                "(URCHIN, LEAVE, NIKOLAI, M-SOFT). Your own samples in them are gone: keep their WAV files.")) return;
   job("RESTORE FACTORY SAMPLES", async () => {
     say("WRITING THE FOUR FACTORY SAMPLES (ABOUT 5 S)…");
     try { smpInfo = await conn.client.smpFactory(); } catch (e) {
-      if (e.rc === 97) throw new EditorError("NO ANSWER: THE FM-1'S GR!MM IS OLDER THAN 26C (NO FACTORY SAMPLES)", 97);
+      if (e.rc === 97) throw new EditorError("NO ANSWER: THE FM-1 HAS NO FACTORY SAMPLES TO RESTORE (IS IT RUNNING COQUÍ?)", 97);
       throw e;
     }
     drawSamples();
@@ -771,7 +778,7 @@ $("b-sfactory").onclick = () => {                            // RESTORE: the fou
 $("b-backup").onclick = () => job("BACKUP", async () => {
   const b = await makeBackup(conn.client, conn.info, (i, n, what) => { progress(i, n); say(`READING ${what.toUpperCase()}…`); });
   download(`coqui-backup-${stamp()}.json`, JSON.stringify(b, null, 1));
-  return `BACKUP MADE: ALL 64 SOUNDS, SLOTS A–D, THE SETTINGS${b.samples ? ", THE SAMPLES" : " (NOT THE SAMPLES: THIS GR!MM CANNOT SEND THEM)"} (DOWNLOADED)` +
+  return `BACKUP MADE: ALL 64 SOUNDS, SLOTS A–D, THE SETTINGS${b.samples ? ", THE SAMPLES" : " (NOT THE SAMPLES: THIS COQUÍ CANNOT SEND THEM)"} (DOWNLOADED)` +
          (conn.client.missed ? `; ${conn.client.missed} REPLIES MISSED, ASKED AGAIN` : "");
 });
 $("b-restore").onclick = () => $("f-restore").click();
@@ -889,7 +896,7 @@ function drawFx() {
 $("b-fxread").onclick = () => job("FX", async () => {
   try { fxVals = await conn.client.fx(); } catch (e) {
     if (e instanceof EditorError) throw e;
-    throw new EditorError("NO ANSWER: FX NEEDS GR!MM V2 ON THE FM-1", 0);
+    throw new EditorError("NO ANSWER: FX NEEDS COQUÍ ON THE FM-1", 0);
   }
   drawFx();
   return "FX READ FROM THE FM-1: EVERY MOVE NOW PLAYS ON IT AT ONCE";
@@ -899,7 +906,7 @@ drawFx();
 // ------------------------------------------------------------------ the SEQUENCER (GR!MM 2.0, patterns only: no firmware change)
 // The four tracks' patterns: a 64-step grid a track, a step's NOTE, CHANCE, RATCHET, LENGTH, chord and locks, a track's STEPS,
 // DIVISION, SWING and PLAY MODE. They are read from a slot (or from the working project, what the FM-1 plays now), written back
-// into a slot (only its sequence and lock bytes 212-2403: the sounds and mix stay), kept in a file, or tried in this page's GR!MM.
+// into a slot (only its sequence and lock bytes 212-2403: the sounds and mix stay), kept in a file, or tried in this page's COQUÍ.
 const sq = { pats: [0, 1, 2, 3].map(() => emptyPattern(16)), t: 0, s: 0, trk: null, from: "EMPTY", dirty: false, clip: null,
              rec: false, oct: 4, mon: true, pedal: false };   // (REC armed, the computer keys' octave, MONITOR, the sustain pedal)
 const SQ_SLOT_KEY = ["F3", "G3", "A3", "B3"];
@@ -1002,7 +1009,7 @@ function drawSeq() {
   drawSqTabs(), drawSqTrack(), drawSqGrid(), drawSqStep(), sqStatus(), sqRecStatus();
 }
 const sqNeedsV2 = () => {
-  if (conn.info.slotSize !== SEQ.SLOT_LEN) throw new EditorError("THIS FM-1'S SLOTS ARE NOT GR!MM 2.0'S: THE SEQUENCER NEEDS GR!MM 2.0", 0);
+  if (conn.info.slotSize !== SEQ.SLOT_LEN) throw new EditorError("THIS FM-1'S SLOTS ARE NOT COQUÍ'S: THE SEQUENCER NEEDS COQUÍ", 0);
 };
 $("sq-import").onclick = () => job("IMPORT SLOT", async () => {
   sqNeedsV2();
@@ -1015,7 +1022,7 @@ $("sq-now").onclick = () => job("IMPORT", async () => {
   sqNeedsV2();
   let w;
   try { w = await conn.client.get(OBJ.WORK, SEQ.WORK_LEN); } catch (e) {
-    throw e.rc === 1 ? new EditorError("THE FM-1 DID NOT GIVE ITS PROJECT: TRY AGAIN IN A MOMENT (OR IT IS NOT GR!MM 2.0)", 1) : e;
+    throw e.rc === 1 ? new EditorError("THE FM-1 DID NOT GIVE ITS PROJECT: TRY AGAIN IN A MOMENT (OR IT IS NOT RUNNING COQUÍ)", 1) : e;
   }
   setSq(patternsFromWork(w), [0, 1, 2, 3].map((t) => slotTrack(w, t, 0)), `WHAT THE ${conn.kind === "virtual" ? "VIRTUAL " : ""}FM-1 PLAYS NOW`, false);
   return "IMPORTED: THE FOUR PATTERNS THE FM-1 HAS NOW ARE IN THE GRID";
@@ -1069,10 +1076,10 @@ $("sq-clear").onclick = () => {
   setSq([0, 1, 2, 3].map(() => emptyPattern(16)), null, "EMPTY", false);
 };
 
-// the preview: the patterns into this page's own GR!MM (its slot, recalled, played), its sound as the SOUND EDITOR's
+// the preview: the patterns into this page's own COQUÍ (its slot, recalled, played), its sound as the SOUND EDITOR's
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let engClient = null, engWait = [], engLeds = null;
-function engReply(d) {                                       // a reply from the page's GR!MM (worklet.js): to the request waiting
+function engReply(d) {                                       // a reply from the page's COQUÍ (worklet.js): to the request waiting
   const k = engWait.findIndex((w) => w.cmd === d[4]);
   if (k < 0) return;
   const [w] = engWait.splice(k, 1);
@@ -1081,8 +1088,8 @@ function engReply(d) {                                       // a reply from the
 const engTransport = {
   request(frame, timeout = 3000) {
     return new Promise((res, rej) => {
-      if (!node) { rej(new EditorError("THE PAGE'S GR!MM IS NOT RUNNING (CLICK ANYWHERE, THEN TRY AGAIN)", 0)); return; }
-      const w = { cmd: frame[3], res, timer: setTimeout(() => { engWait = engWait.filter((x) => x !== w); rej(new EditorError("no answer from this page's GR!MM", 97)); }, timeout) };
+      if (!node) { rej(new EditorError("THE PAGE'S COQUÍ IS NOT RUNNING (CLICK ANYWHERE, THEN TRY AGAIN)", 0)); return; }
+      const w = { cmd: frame[3], res, timer: setTimeout(() => { engWait = engWait.filter((x) => x !== w); rej(new EditorError("no answer from this page's COQUÍ", 97)); }, timeout) };
       engWait.push(w);
       node.port.postMessage({ type: "sysex", data: frame });
     });
@@ -1103,9 +1110,9 @@ $("sq-preview").onclick = async () => {
   b.disabled = true;
   try {
     await startEngine();
-    if (!node) throw new EditorError("THE PAGE'S GR!MM IS NOT RUNNING", 0);
+    if (!node) throw new EditorError("THE PAGE'S COQUÍ IS NOT RUNNING", 0);
     const ec = engClient || (engClient = new Client(engTransport)), k = +$("sq-slot").value;
-    say("PREVIEW: PREPARING THIS PAGE'S GR!MM…");
+    say("PREVIEW: PREPARING THIS PAGE'S COQUÍ…");
     node.port.postMessage({ type: "panic" });
     if (enginePlays()) await engRun(stopScript());
     const fmt = (await ec.info()).fmt, work = await ec.get(OBJ.WORK, SEQ.WORK_LEN);
@@ -1113,7 +1120,7 @@ $("sq-preview").onclick = async () => {
     for (let tries = 0; ; tries++) {
       try { await ec.put(OBJ.SLOT + k, slot, fmt); break; } catch (e) {
         if (e.rc !== 3 || tries >= 60) throw e;
-        say("PREVIEW: WAITING FOR THIS PAGE'S GR!MM TO FALL SILENT…");
+        say("PREVIEW: WAITING FOR THIS PAGE'S COQUÍ TO FALL SILENT…");
         await sleep(500);
       }
     }
@@ -1137,7 +1144,7 @@ $("sq-stop").onclick = async () => {
 // pedal and Space skip a step (OFF), TIE makes the step before one longer; 3+ keys pressed together that are one of the FM-1's
 // chords (any VOICING) make a chord step, else the lowest note is written. It writes only while this section is shown.
 const SQ_MIDI_KEY = "coqui-seq-midi";
-const FM1_PORT = /felucca|fm-?1|m-?vave|gr!?mm/i;            // (the FM-1's own port: not a keyboard)
+const FM1_PORT = /felucca|fm-?1|m-?vave|gr!?mm|coqu/i;            // (the FM-1's own port: not a keyboard)
 const sqOn = () => $("s-sequencer").classList.contains("on");
 const sqTyping = () => {                                     // a text field has the keys: never taken
   const a = document.activeElement;
@@ -1172,7 +1179,7 @@ function sqCommit(notes) {                                   // keys pressed tog
   sqSelect(r.cursor);
 }
 const sqGroup = makeGrouper(sqCommit, 50);
-function engMidi(st, n, v) { if (node) node.port.postMessage({ type: "midi", data: [st | sq.t, n, v] }); }   // (the page's GR!MM plays it: the track's sound)
+function engMidi(st, n, v) { if (node) node.port.postMessage({ type: "midi", data: [st | sq.t, n, v] }); }   // (the page's COQUÍ plays it: the track's sound)
 function sqNoteOn(n) {
   if (sq.mon) engMidi(0x90, n, 100);
   if (sqRecOn()) sqGroup.add(n);
@@ -1264,7 +1271,7 @@ $("sq-midi-scan").onclick = () => sqMidiInit(true);
 $("sq-midi").onchange = () => { saveMidi($("sq-midi").value), sqMidiList(); };
 if (savedMidi()) sqMidiInit(false);                          // (a keyboard chosen before: found again, no question if allowed already)
 
-// ------------------------------------------------------------------ start: the four tracks as GR!MM starts
+// ------------------------------------------------------------------ start: the four tracks as COQUÍ starts
 (async () => {
   try {
     wasm = await (await fetch("coqui.wasm")).arrayBuffer();
@@ -1275,13 +1282,13 @@ if (savedMidi()) sqMidiInit(false);                          // (a keyboard chos
     for (let t = 0; t < 4; t++) {
       const r = await vfc.track(t, true);
       tracks[t] = fromDevice(r.rec, t), label[t] = r.name, labelEng[t] = tracks[t].eng;
-      loaded[t] = JSON.stringify(tracks[t]), from[t] = "AS GR!MM STARTS";
+      loaded[t] = JSON.stringify(tracks[t]), from[t] = "AS COQUÍ STARTS";
     }
   } catch (e) {
-    say(`COULD NOT LOAD GR!MM (coqui.wasm): ${e.message || e}. OPEN THIS PAGE FROM A WEB SERVER, NOT A FILE.`.toUpperCase(), "err");
+    say(`COULD NOT LOAD COQUÍ (coqui.wasm): ${e.message || e}. OPEN THIS PAGE FROM A WEB SERVER, NOT A FILE.`.toUpperCase(), "err");
     return;
   }
-  screenText(["CLICK ANYWHERE:", "GR!MM'S SOUND", "AND SCREEN"]);
+  screenText(["CLICK ANYWHERE:", "COQUÍ'S SOUND", "AND SCREEN"]);
   startEngine();
   drawKeys();
   drawSlots();

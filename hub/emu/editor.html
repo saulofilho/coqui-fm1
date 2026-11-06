@@ -1,0 +1,359 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only
+     Copyright (C) 2026 GR!MM; COQUÍ changes Copyright (C) 2026 COQUÍ (its name, look, GROOVE, PERC)
+     COQUÍ's editor (GR!MM's): the FM-1's sounds, samples and a backup, over Web MIDI SysEx (docs/EDITOR_PROTOCOL.md). Its sections
+     in a left menu and its way of editing (the tracks' sounds, live, as the knobs) follow SLOOP's editor (isod89/sloop-fm1,
+     web/, GPL-3.0); its code is GR!MM's. The sounds play here in the firmware's own engine (coqui.wasm, the firmware's
+     code), its screen beside the keys. The font: Press Start 2P (SIL OFL 1.1, LICENSES/OFL-PressStart2P.txt). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COQUÍ editor</title>
+<link rel="icon" href="../favicon.png">
+<style>
+@font-face { font-family: "Press Start 2P"; src: url("PressStart2P-Regular.ttf") format("truetype"); font-display: block; }
+:root { --k: #0c0818; --d: #2b1d45; --m: #7d5f98; --n: #9a80b3; --l: #f2c49b; --w: #fff3e2; --a: #ff2d8a; --f: #ff9a1a; color-scheme: dark; }   /* (COQUÍ: noche tropical, as the FM-1's) */
+/* --m: off, empty, disabled things; --n: help text (as the hub's --ash); --f: keyboard focus (the hub's ember) */
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--k); color: var(--l); }
+body { font: 13px/1.5 system-ui, "Segoe UI", Arial, sans-serif; }
+.px, h1, h2, h3, button, label, select, input, nav a, .slot, table { font-family: "Press Start 2P", monospace; font-size: 8px; line-height: 1.6; }
+header { display: flex; gap: 6px; padding: 6px; }
+header .tag { background: var(--a); color: var(--k); padding: 8px 10px; font-size: 16px; text-decoration: none; }
+header .bar { flex: 1; min-width: 0; background: var(--d); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 0 12px; }
+header .bar span { font-size: 8px; }
+header .bar b { font-size: 16px; font-weight: normal; color: var(--l); }
+#conn { color: var(--m); }
+#conn.on { color: var(--w); }
+.wrap { display: flex; gap: 6px; padding: 0 6px 6px; min-height: calc(100vh - 54px); }
+nav { width: 132px; flex: none; display: flex; flex-direction: column; gap: 4px; }
+nav a { display: block; background: var(--d); color: var(--l); padding: 10px 8px; text-decoration: none; cursor: pointer; }
+nav a.on { background: var(--a); color: var(--k); }
+nav a.off { color: var(--m); }
+main { flex: 1; min-width: 0; }
+section { display: none; }
+section.on { display: block; }
+h2 { font-size: 16px; font-weight: normal; margin: 6px 0 12px; color: var(--w); }
+h3 { font-weight: normal; color: var(--m); margin: 16px 0 6px; }
+p.note, footer.note { color: var(--n); }
+p.note { max-width: 60em; margin: 6px 0; }
+button { background: var(--d); color: var(--w); border: 2px solid var(--m); padding: 8px 10px; cursor: pointer; }
+button:hover { border-color: var(--l); }
+button.go { background: var(--a); color: var(--k); border-color: var(--a); }
+button:disabled { opacity: .35; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+select, input[type=text], input[type=number] { background: var(--k); color: var(--w); border: 2px solid var(--m); padding: 6px; }
+#msgs { position: sticky; top: 0; z-index: 3; }
+#msg { background: var(--d); padding: 8px 10px; margin-bottom: 6px; min-height: 30px; color: var(--l); }
+#msg.ok { color: var(--w); border-left: 6px solid var(--l); }
+#msg.err { color: var(--w); border-left: 6px solid var(--a); }
+#prog { height: 6px; background: var(--d); margin-bottom: 6px; visibility: hidden; }
+#prog i { display: block; height: 100%; width: 0; background: var(--a); }
+table.kv td { padding: 3px 14px 3px 0; }
+table.kv td:first-child { color: var(--m); }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 3px; }
+.slot { background: var(--d); padding: 7px 8px; cursor: pointer; overflow-wrap: anywhere; border: 2px solid transparent; }   /* (the name whole, never cut) */
+.slot .src { display: block; color: var(--n); font-size: 8px; margin-top: 3px; }
+.slot .n { color: var(--m); }
+.slot.empty { color: var(--m); }
+.slot.sel .src { color: var(--l); }
+.slot.sel { border-color: var(--a); }
+.slot.dirty::after { content: " *"; color: var(--a); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; }
+.grp { background: var(--d); padding: 10px; }
+.grp h3 { margin: 0 0 8px; color: var(--l); }
+.ctl { margin: 0 0 10px; }
+.ctl .lab { display: flex; justify-content: space-between; gap: 8px; }
+.ctl .lab span { color: var(--w); }
+input[type=range] { width: 100%; appearance: none; -webkit-appearance: none; height: 18px; background: var(--k); margin: 4px 0 0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 18px; background: var(--a); border: 0; }
+input[type=range]::-moz-range-thumb { width: 12px; height: 18px; background: var(--a); border: 0; border-radius: 0; }
+.ops { width: 100%; border-collapse: collapse; }
+.ops td { padding: 2px 4px 2px 0; vertical-align: middle; }
+.ops td.o { color: var(--w); width: 34px; }
+.ops input[type=range] { margin: 0; }
+.ops input[type=range] { min-width: 56px; }
+.ops .v { color: var(--w); width: 56px; padding-right: 16px; text-align: right; }
+canvas#alg { display: block; width: 100%; max-width: 432px; image-rendering: pixelated; background: var(--k); margin-top: 6px; }
+.toggle { border-color: var(--m); }
+.toggle.on { background: var(--l); color: var(--k); }
+.kbd { position: relative; height: 112px; max-width: 760px; margin-top: 8px; user-select: none; touch-action: none; }
+.kbd .w, .kbd .b { position: absolute; top: 0; border: 2px solid var(--k); cursor: pointer; }
+.kbd .w { background: var(--l); height: 112px; }
+.kbd .b { background: var(--d); height: 66px; z-index: 2; }
+.kbd .down { background: var(--a) !important; }
+.kbd span { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; color: var(--k); }
+.kbd .b span { color: var(--m); }
+.smp { display: grid; grid-template-columns: 70px 1fr; gap: 6px; background: var(--d); padding: 10px; margin-bottom: 6px; }
+.smp .drop { border: 2px dashed var(--m); padding: 10px; color: var(--m); }
+.smp .drop.hot { border-color: var(--a); color: var(--w); }
+.big { font-size: 16px; color: var(--w); }
+#log { background: var(--k); border: 2px solid var(--d); color: var(--l); padding: 8px; height: 260px; overflow: auto;
+       font: 11px/1.5 Consolas, "Courier New", monospace; white-space: pre-wrap; word-break: break-all; margin: 6px 0; }
+.trks { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; }
+.trk { flex: 1 1 200px; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.trk b { font-weight: normal; color: var(--a); }
+.trk.on { background: var(--a); color: var(--k); border-color: var(--a); }
+.trk.on b { color: var(--k); }
+.play { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+#screen { width: 480px; max-width: 100%; aspect-ratio: 1; image-rendering: pixelated; display: block; background: var(--k); }
+.play .keys { flex: 1 1 360px; min-width: 0; }
+.pickbar { position: sticky; top: 46px; z-index: 2; background: var(--k); padding: 4px 0; }
+.sqgrid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; margin-top: 6px; }
+.sqs { padding: 6px 0; min-height: 46px; text-align: center; background: var(--d); border: 2px solid transparent; color: var(--m); }
+.sqs small { display: block; font-size: 8px; color: var(--m); margin-bottom: 3px; }
+.sqs.has { background: var(--l); color: var(--k); }
+.sqs.has small { color: var(--d); }
+.sqs.out { opacity: .35; }
+.sqs.sel { border-color: var(--a); }
+.lock { display: flex; gap: 8px; align-items: flex-start; }
+.lock .ctl { flex: 1; min-width: 0; margin: 0 0 10px; }
+.lock input[type=checkbox] { margin-top: 2px; width: 18px; height: 18px; flex: none; }
+@media (min-width: 900px) { .sqgrid { grid-template-columns: repeat(16, minmax(0, 1fr)); } }
+#sq-from { color: var(--w); }
+.recrow button { min-height: 44px; min-width: 64px; }
+.toggle.on#sq-rec { background: var(--a); color: var(--w); border-color: var(--a); }
+.sqgrid.rec .sqs.sel { background: var(--a); color: var(--w); outline: 3px solid var(--f); outline-offset: 1px; }
+.sqgrid.rec .sqs.sel small { color: var(--w); }
+#sq-recst { color: var(--f); margin: 4px 0 0; }
+#sq-recmsg { color: var(--w); margin: 2px 0 6px; min-height: 14px; }
+#sq-recmsg.bad { color: var(--f); }
+a.lnk { color: var(--l); }
+/* the drip under the header: the hub's, in this page's colours */
+.drip { height: 18px; margin: 0 6px 10px; background:   /* (COQUÍ: the sea, as the hub's dividers) */
+  radial-gradient(circle at 8px -3px, transparent 9px, var(--a) 10px, var(--a) 12px, transparent 13px) 0 7px / 16px 12px repeat-x,
+  radial-gradient(circle at 8px -3px, transparent 9px, var(--m) 10px, var(--m) 12px, transparent 13px) 8px 0 / 16px 12px repeat-x; }
+/* keyboard focus: seen on everything that takes it */
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, nav a:focus-visible, .slot:focus-visible,
+input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2px; }
+.ops-box { overflow-x: auto; }
+@media (max-width: 599px) {
+  .wrap { flex-direction: column; min-height: 0; }
+  nav { width: auto; flex-direction: row; overflow-x: auto; padding-bottom: 6px; gap: 4px; }
+  nav a { flex: none; white-space: nowrap; }
+  html, body { overflow-x: hidden; }
+  header .tag { font-size: 12px; }
+  .play { gap: 6px; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .slots { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="tag px" href="../" aria-label="COQUÍ: the hub">COQUÍ</a>
+  <div class="bar"><b class="px">EDITOR</b><span><a class="lnk px" href="index.html">WEB EMULATOR</a> · <span id="conn" class="px">NOT CONNECTED</span></span></div>
+</header>
+<div class="drip" role="presentation"></div>
+<div class="wrap">
+  <nav>
+    <a href="#connect" data-s="connect">CONNECT</a>
+    <a href="#sounds" data-s="sounds">SOUNDS</a>
+    <a href="#editor" data-s="editor">SOUND EDITOR</a>
+    <a href="#sequencer" data-s="sequencer">SEQUENCER</a>
+    <a href="#samples" data-s="samples">SAMPLES</a>
+    <a href="#fx" data-s="fx">FX</a>
+    <a href="#settings" data-s="settings">SETTINGS</a>
+    <a href="#backup" data-s="backup">BACKUP</a>
+  </nav>
+  <main>
+    <div id="msgs"><div id="msg" class="px">LOADING COQUÍ…</div><div id="prog"><i></i></div></div>
+
+    <section id="s-connect">
+      <h2>CONNECT</h2>
+      <div class="row">
+        <button id="b-connect" class="go">CONNECT FM-1 (USB)</button>
+        <button id="b-try">TRY WITHOUT AN FM-1</button>
+        <button id="b-disconnect">DISCONNECT</button>
+      </div>
+      <p class="note">Connect the FM-1 with a USB data cable, switch it on with COQUÍ, close other apps that use its MIDI
+        port, then click CONNECT and allow MIDI (SysEx) when the browser asks. Chrome or Edge on a computer.
+        TRY WITHOUT AN FM-1 runs COQUÍ's own code in this page instead: everything works, nothing is kept.</p>
+      <p class="note">The FM-1 only accepts writes while it is stopped and silent: stop the sequencer and let every
+        note, release and DELAY or SPACE tail end. Nothing is ever written without you clicking a button.</p>
+      <table class="kv" id="info"></table>
+      <div class="row"><button id="b-log" class="toggle">MIDI LOG</button><button id="b-logclear">CLEAR LOG</button></div>
+      <pre id="log" hidden></pre>
+    </section>
+
+    <section id="s-sounds">
+      <h2>SOUNDS</h2>
+      <div class="row">
+        <button id="b-readall" class="go">READ ALL FROM FM-1</button>
+        <span id="readat" class="px"></span>
+      </div>
+      <div class="pickbar">
+        <div class="row"><span class="px" id="pickname">—</span></div>
+        <div class="row">
+          <span class="px">LOAD TO</span>
+          <button id="b-load0" class="go">T1</button><button id="b-load1" class="go">T2</button>
+          <button id="b-load2" class="go">T3</button><button id="b-load3" class="go">T4</button>
+          <button id="b-export">EXPORT</button>
+          <span class="px">· USER SLOT:</span>
+          <button id="b-rename">RENAME</button>
+          <button id="b-clear">CLEAR</button>
+          <button id="b-import">IMPORT</button>
+          <button id="b-send" class="go">SEND TO FM-1</button>
+          <input type="file" id="f-import" accept=".json,.coquisound" hidden>
+        </div>
+      </div>
+      <p class="note">Click a sound, then LOAD TO a track (or double-click: the track in the editor): it plays there at once,
+        on the FM-1 too, and the SOUND EDITOR opens on it. RENAME, CLEAR and IMPORT change a user slot here (marked *)
+        until SEND TO FM-1 writes it.</p>
+      <h3>USER SLOTS (ON THE FM-1)</h3>
+      <div class="slots" id="user"></div>
+      <h3>FACTORY SOUNDS (BUILT IN)</h3>
+      <div class="slots" id="factory"></div>
+    </section>
+
+    <section id="s-editor">
+      <div class="trks" id="tracks"></div>
+      <h2 id="ed-title">T1</h2>
+      <p class="note" id="ed-from"></p>
+      <div class="row">
+        <button id="b-store" class="go">STORE IN SLOT</button>
+        <select id="ed-slot"></select>
+        <button id="b-eexport">EXPORT</button>
+        <button id="b-eimport">IMPORT</button>
+        <button id="b-revert">REVERT</button>
+        <input type="file" id="f-eimport" accept=".json,.coquisound" hidden>
+      </div>
+      <div class="grp play">
+        <canvas id="screen" width="240" height="240"></canvas>
+        <div class="keys">
+          <h3>PLAY: COQUÍ IN THIS PAGE, THE SELECTED TRACK</h3>
+          <div class="kbd" id="kbd"></div>
+          <div class="row">
+            <button id="b-panic">ALL NOTES OFF</button>
+            <span class="px">KEYS: Z X C V B N M , . / · S D F H J L ; ' · Q .. O (HIGHER)</span>
+          </div>
+          <p class="note">Every move of a control reaches the track at once: on the FM-1 (live, as its knobs; nothing is
+            saved until STORE IN SLOT) and in COQUÍ here, whose screen this is and whose keys these are. Turn a knob on
+            the FM-1 and this page follows. A latched note stays until its key again, or ALL NOTES OFF. The TRACK
+            filter (HOME's CUTOFF, RESONANCE, FX) belongs to the track, not to a sound.</p>
+        </div>
+      </div>
+      <div class="grid" id="ed" style="margin-top:6px"></div>
+      <div class="grp" id="fm" style="margin-top:6px"></div>
+    </section>
+
+    <section id="s-sequencer">
+      <h2>SEQUENCER</h2>
+      <div class="row">
+        <label class="px" for="sq-slot">SLOT</label>
+        <select id="sq-slot"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+        <button id="sq-import" class="go">IMPORT SLOT</button>
+        <button id="sq-now">IMPORT: PLAYING NOW</button>
+        <button id="sq-send" class="go">SEND TO SLOT</button>
+      </div>
+      <div class="row">
+        <button id="sq-preview" class="go">PREVIEW</button>
+        <button id="sq-stop">STOP</button>
+        <button id="sq-save">SAVE FILE</button>
+        <button id="sq-load">LOAD FILE</button>
+        <button id="sq-clear">CLEAR ALL</button>
+        <input type="file" id="sq-file" accept=".json,.coquipattern" hidden>
+      </div>
+      <div class="row recrow">
+        <button id="sq-rec" class="toggle" aria-pressed="false">REC</button>
+        <button id="sq-rest">REST</button>
+        <button id="sq-tie">TIE</button>
+        <button id="sq-mon" class="toggle on">MONITOR</button>
+        <button id="sq-octd">OCT-</button><span class="px" id="sq-oct">OCT 4</span><button id="sq-octu">OCT+</button>
+      </div>
+      <div class="row">
+        <label class="px" for="sq-midi">MIDI IN</label>
+        <select id="sq-midi"><option value="">OFF</option></select>
+        <button id="sq-midi-scan">FIND MIDI INPUTS</button><span class="px" id="sq-midi-n"></span>
+      </div>
+      <p class="px" id="sq-recst"></p>
+      <p class="px" id="sq-recmsg"></p>
+      <p class="px" id="sq-from">EMPTY</p>
+      <div class="trks" id="sq-tracks"></div>
+      <div class="grp" id="sq-trk"></div>
+      <div class="sqgrid" id="sq-grid"></div>
+      <div class="grid" id="sq-step" style="margin-top:6px"></div>
+      <p class="note">The four tracks' patterns, as the FM-1's SEQ pages: pick a step, then set its NOTE (0 is OFF), CHANCE,
+        RATCHET, LENGTH, a chord step, and its locks (a lock replaces one of the track's four knobs on that step; move
+        a slider to lock it, untick to free it). In the grid, C marks a chord step, L a step with locks; dim steps are
+        after the track's last step. IMPORT SLOT reads a slot, IMPORT: PLAYING NOW what the FM-1 plays at this moment.
+        SEND TO SLOT first downloads a backup of the slot, then changes only its patterns (the sounds and mix stay),
+        reads it back and checks it; it is refused while the FM-1 plays or still sounds. Then, on the FM-1, hold SAVE + F3
+        (A), G3 (B), A3 (C) or B3 (D) to recall it. PREVIEW plays the patterns in this page's COQUÍ, with the sounds of
+        T1&ndash;T4 as the SOUND EDITOR has them. SAVE FILE and LOAD FILE keep the patterns on this computer.</p>
+      <p class="note">STEP RECORD: press REC, then play: a MIDI keyboard (pick it under MIDI IN; the FM-1's own port is not
+        listed), or the computer's keys A W S E D F T G Y H U J K (one octave, Z and X move it). Each note goes into the
+        selected step and the cursor moves on, wrapping at the track's last step. REST, the sustain pedal (CC64) and Space
+        skip a step; TIE makes the step before one longer; Backspace clears the step; the arrow keys move the cursor. Three
+        or more keys pressed together that are one of the FM-1's chords (CHORD TYPE and VOICING, SCALE aside) make a chord
+        step; any other chord writes its lowest note. MONITOR plays what you press in this page's COQUÍ.</p>
+    </section>
+
+    <section id="s-samples">
+      <h2>SAMPLES</h2>
+      <div class="row"><button id="b-sinfo">REFRESH</button><button id="b-sfactory">RESTORE FACTORY SAMPLES</button>
+        <label class="px"><input type="checkbox" id="smp-norm" checked> NORMALISE</label></div>
+      <div id="smp"></div>
+      <p class="note">Any WAV (8 to 32 bit, float, mono or stereo, any rate) becomes mono, 22050 Hz, IMA ADPCM, as
+        tools/fm1_sample_upload.py makes it; A slot holds 6.64 s
+        (longer: cut, with a short fade). The root note is C4 unless the file name has one ("drone_A2.wav"). A name is
+        8 characters (the slot's, what the FM-1 shows): a longer one keeps its number ("Sample-002": SAMP-002).</p>
+      <p class="note">NORMALISE (switched on as the page opens) brings every WAV to the same loudness; switched off, a
+        sample keeps its own level (quiet ones stay quiet, as recorded). RESTORE FACTORY SAMPLES writes COQUÍ's four
+        (URCHIN, LEAVE, NIKOLAI, M-SOFT) over all four slots; an FM-1 also gets them by itself at power-on in a slot
+        that holds nothing. A BACKUP holds the four slots too.</p>
+    </section>
+
+    <section id="s-fx">
+      <h2>FX</h2>
+      <div class="row"><button id="b-fxread" class="go">READ FROM FM-1</button></div>
+      <div class="grid" id="fx"></div>
+      <p class="note">The project's effects, as the FX pages on the FM-1 (TAPE, GRAIN, DELAY, SPACE, MASTER, DRIVE), and
+        each track's filter TYPE and POS (MIXER 2) and its five sends (MIXER 1). READ first; then every move reaches the FM-1 at once, as its knobs
+        (kept with the project: its autosave). The FM-1's own knobs and this page don't follow each other: READ again
+        after turning them.</p>
+    </section>
+
+    <section id="s-settings">
+      <h2>SETTINGS</h2>
+      <div class="row"><button id="b-setread" class="go">READ FROM FM-1</button><button id="b-setwrite">WRITE TO FM-1</button></div>
+      <div class="row"><label class="px" for="set-mch">MIDI CHANNEL</label><select id="set-mch"></select></div>
+      <div class="row"><label class="px" for="set-clk">CLOCK</label><select id="set-clk"></select></div>
+      <div class="row"><label class="px" for="set-latch">LATCH</label><select id="set-latch"></select></div>
+      <div class="row"><label class="px" for="set-vel">VELOCITY</label><select id="set-vel"></select></div>
+      <p class="note">The FM-1's own settings (SYSTEM, SYSTEM 2, SYSTEM 3), not the project's. MIDI CHANNEL: 1-4 puts T1–T4 on
+        channels 1–4 (up to 13-16); ALL &gt; SEL plays every channel on the selected track; CH n &gt; SEL plays only
+        channel n on the selected track and ignores the others. CLOCK: INT, the FM-1's own tempo; INT+OUT, the same
+        and its MIDI clock out over USB (START, STOP and 24 pulses a beat); USB or TRS, it follows the MIDI clock from
+        there (START, CONTINUE, STOP; the jack is MIDI IN only). LATCH: FROM SOUND, a sound you load brings its own
+        LATCH; ALWAYS OFF, a sound you load sets the track's LATCH off (you can still latch it by hand:
+        EDIT's LATCH, SEL + OCT+). The same on the FM-1: SYSTEM's KNOB 2, SYSTEM 2's KNOB 4, SYSTEM 3's
+        KNOB 1. READ first; WRITE changes only these three (the FM-1 stopped and silent).</p>
+    </section>
+
+    <section id="s-backup">
+      <h2>BACKUP</h2>
+      <div class="row">
+        <button id="b-backup" class="go">MAKE A BACKUP</button>
+        <button id="b-restore">RESTORE FROM A FILE…</button>
+        <input type="file" id="f-restore" accept=".json" hidden>
+      </div>
+      <p class="note">A backup holds all 64 user sounds, slots A–D, the settings and the four sample slots (the same
+        file as tools/fm1_editor_test.py makes). Restoring first makes a backup of what the FM-1 has now (downloaded),
+        then writes everything, then reads it back to check; a sample slot that already holds the same sample is not
+        written again, one empty in the backup is emptied. An older backup (without samples) restores the
+        rest and leaves the sample slots as they are.</p>
+    </section>
+    <footer class="note">
+      <p><b><a class="lnk" href="index.html">Try the COQUÍ web emulator</a></b>: the FM-1's panel in your browser, the same firmware · <b><a class="lnk" href="../">The COQUÍ hub</a></b></p>
+      <p>COQUÍ · based on <a class="lnk" href="https://github.com/GRiMMBIENT/grimm">GR!MM</a> (GPL-3.0) · <a class="lnk" href="LICENSE">GPL-3.0-only</a> · <a class="lnk" href="https://github.com/saulofilho/coqui-fm1">source</a> · <a class="lnk" href="LICENSING.md">credits and licences</a> · fonts: Press Start 2P, <a class="lnk" href="LICENSES/OFL-PressStart2P.txt">SIL OFL 1.1</a>; Terminus, <a class="lnk" href="Terminus-LICENSE.txt">SIL OFL 1.1</a> · factory samples: <a class="lnk" href="LICENSES/CC0-1.0.txt">CC0 1.0</a> · built with Emscripten (<a class="lnk" href="LICENSES/MIT-Emscripten.txt">MIT</a>, musl <a class="lnk" href="LICENSES/MIT-musl.txt">MIT</a>)</p>
+      <p>Built on Dinghy (zvenson), Felucca (Leo Kuroshita, Hügelton Instruments) and SLOOP (isod89); the editor's
+        sections and live editing follow SLOOP's editor. M-VAVE and FM-1 are trademarks of their owners; COQUÍ is not
+        affiliated with or endorsed by them.</p>
+    </footer>
+  </main>
+</div>
+<script type="module" src="editor.js"></script>
+</body>
+</html>

@@ -185,4 +185,6 @@ needs them. Each value stays yours to turn on the effects' own pages; the boxes 
 - **Newer FM-1s**: the flash chip of FM-1s sold since autumn 2026 (UC25HQ80) works too: saves stay, and updates install.
 - **Colours**: SYSTEM's COLOUR offers ROSA (the default), MANGO, MAR and LIMA over a night-blue palette.
 - **Boot**: the coquí sings under the moon for a few seconds.
-- **Not yet changed**: the web editor (still GR!MM's). [PLAN.md](PLAN.md) says what comes next.
+- **The web editor** (the hub's EDITOR, Chrome or Edge, the FM-1 on USB, or TRY WITHOUT AN FM-1): sounds, the SOUND
+  EDITOR live on the tracks (a PERC sound: its GROOVE too), the SEQUENCER, the samples, FX, SETTINGS and a BACKUP,
+  as GR!MM's editor works, in COQUÍ's colours and formats.

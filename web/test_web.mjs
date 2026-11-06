@@ -21,7 +21,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { Client, VirtualFM1, LiveSender, MidiTransport, findFM1, OBJ, parseSound, buildRecord, makeBackup, checkBackup,
          restoreBackup, makeSlot, recordOk, unpack7, hex, sampleName, SET_V1, SET_V2, settingsOf, withSettings,
-         sameSettings, crc32, checkSamples, restoreSamples, EditorError, VOICE_TYPES, LINE2_WAVES, V2_SOUND_CONTROLS, PHASE_PD0,
+         sameSettings, crc32, checkSamples, restoreSamples, EditorError, GROOVE_STYLES, GROOVE_PARTS, GROOVE_FILLS, LINE2_WAVES, V2_SOUND_CONTROLS, PHASE_PD0,
          glideText, decayText, pctText, PITCH_TEXT, SEQ, emptyPattern, slotFromWork, slotWithPatterns, patternsFromSlot,
          patternsFromWork, slotTrack, patternFile, parsePatternFile, recallScript, stopScript, BTN_PLAY, chordTable, chordNotes, matchChord,
          recWrite, recRest, recTie, makeGrouper, pcKeyNote, noteName, emptyStep } from "./editor_core.js";
@@ -180,22 +180,24 @@ if (process.argv.includes("--emulator")) {
           JSON.stringify(bl.samples) === JSON.stringify(b0.samples),
           `editor: a backup with every 37th reply lost: each asked again (${lc.missed}), the same backup`);
   }
-  const s = parseSound(Uint8Array.from(meta.factory[2].rec), meta);
+  const s = parseSound(Uint8Array.from(meta.factory[4].rec), meta);   // (BRISA: FM, its patch edited too)
   Object.assign(s, { name: "TEST EDIT", chordOn: 1, voicing: 2 });
   s.k[1] = 99, s.env[0] = 20, s.lfo = [50, 30, 9, 1], s.fm.alg = 17, s.fm.fb = 5, s.fm.ops[3][2] = 77;
   const rec = buildRecord(s);
   await cl.put(OBJ.SND + 5, rec, info.fmt);
   const back = await cl.get(OBJ.SND + 5, 64);
   check(eq([...back], [...rec]) && JSON.stringify(parseSound(back, meta)) === JSON.stringify(s), "editor: a sound edited, sent, read back as edited");
-  {                                                          // (GR!MM 2.0: VOICE's TYPE in byte 18: the choirs' read; set, sent, read back)
-    const ty = [40, 41, 42, 43].map((i) => parseSound(Uint8Array.from(meta.factory[i].rec), meta).vtype);
-    const v = parseSound(Uint8Array.from(meta.factory[40].rec), meta);
-    v.vtype = 2, v.name = "TYPE TEST";
+  {                                                          // (COQUÍ: a PERC sound's GROOVE in bytes 18 .. 21: the kits' read; set, sent, read back)
+    const kit = (n) => meta.factory.findIndex((x) => x.name === n);
+    const ty = ["SALSA DURA", "PERREO 2004", "BOMBA SICA", "BARRIL LENTO"].map((n) => parseSound(Uint8Array.from(meta.factory[kit(n)].rec), meta).grv);
+    const v = parseSound(Uint8Array.from(meta.factory[kit("SALSA DURA")].rec), meta);
+    v.grv = { style: 5, parts: 2, fill: 3, feel: -10 }, v.name = "GRV TEST";
     const vr = buildRecord(v);
     await cl.put(OBJ.SND + 6, vr, info.fmt);
     const vb = parseSound(await cl.get(OBJ.SND + 6, 64), meta);
-    check(ty.join() === "1,1,3,2" && vb.vtype === 2 && vb.k[1] === v.k[1] && parseSound(Uint8Array.from(meta.factory[0].rec), meta).vtype === 0,
-          `editor: VOICE's TYPE read (the choirs: ${ty.join()}), set, sent, read back (${vb.vtype}); other sounds SOLO`);
+    check(ty.map((g) => `${g.style}/${g.fill}/${g.feel}`).join() === "3/2/0,2/2/0,8/2/0,9/2/0" && JSON.stringify(vb.grv) === JSON.stringify(v.grv) &&
+          vb.eng === 3 && parseSound(Uint8Array.from(meta.factory[0].rec), meta).grv === null,
+          `editor: a PERC kit's GROOVE read (${ty.map((g) => g.style).join()}), set, sent, read back (${JSON.stringify(vb.grv)}); other sounds none`);
   }
   const b1 = await makeBackup(cl, info);
   await cl.put(OBJ.SND + 9, rec, info.fmt);
@@ -336,14 +338,14 @@ if (process.argv.includes("--emulator")) {
   // the tracks, live
   const t0 = await Promise.all([0, 1, 2, 3].map((t) => cl.track(t)));
   check(t0.every((r) => recordOk(r.rec)) && t0.every((r) => r.sel === t0[0].sel), `editor: the four tracks read (track ${t0[0].sel + 1} selected)`);
-  const ls = parseSound(Uint8Array.from(meta.factory[2].rec), meta);   // FROZEN HALL (FM) onto T3, then edited
+  const ls = parseSound(Uint8Array.from(meta.factory[4].rec), meta);   // BRISA (FM) onto T3, then edited (COQUÍ's sounds)
   ls.env[1] = 77, ls.lfo[1] = 42, ls.fm.ops[1][2] = 55, ls.fm.alg = 9;
   await cl.trackSet(2, buildRecord(ls));
   const lb = (await cl.track(2)).rec, lr = buildRecord(Object.assign(parseSound(lb, meta), { cat: ls.cat, num: ls.num, name: ls.name }));
   check(eq([...lr], [...buildRecord(ls)]), "editor: TRACK: a sound set live on track 3, read back as set (FM patch too)");
   check(await cl.select(1) === 1 && (await cl.track(0)).sel === 1 && await cl.select(t0[0].sel) === t0[0].sel, "editor: TRACK: a track selected, and back");
   {                                                          // (GR!MM 2.0: PHASE's LINE 2 and envelopes, a sound's bytes 18 ..)
-    const ps = parseSound(Uint8Array.from(meta.factory[3].rec), meta);   // LAST LIGHT (PHASE)
+    const ps = parseSound(Uint8Array.from(meta.factory[2].rec), meta);   // TROPICAL SYNTH (PHASE)
     const pd0 = JSON.stringify(ps.pd);
     ps.pd.ring = 1, ps.pd.noise = 1, ps.pd.wave = 5, ps.pd.dcw = 99, ps.pd.denv = 80, ps.pd.ddec = 50, ps.pd.penv = -30, ps.pd.pdec = 64, ps.glide = 77;
     await cl.trackSet(2, buildRecord(ps));
@@ -354,11 +356,13 @@ if (process.argv.includes("--emulator")) {
   }
   {                                                          // (the SOUND EDITOR's GR!MM 2.0 controls, live, then STORE IN SLOT)
     const C = V2_SOUND_CONTROLS, live = async (t, sound) => { await cl.trackSet(t, buildRecord(sound)); return parseSound((await cl.track(t)).rec, meta); };
-    check(C.vtype.join() === "VOICE TYPE,0,3,0" && VOICE_TYPES.join() === "SOLO,GREGORIAN,NUNS,CATHEDRAL" &&
+    const gstyles = [...readFileSync("firmware/src/groove.c", "utf8").matchAll(/^    \{"([A-Z0-9 -]+)", (?:32|24), /gm)].map((m) => m[1]);
+    check(C.grv.map((c) => c.join(":")).join() === "STYLE:0:14:0,PARTS:0:6:0,FILL:0:3:0,FEEL:-64:63:0" &&
+          GROOVE_STYLES.join() === ["OFF", ...gstyles].join() && GROOVE_PARTS.length === 7 && GROOVE_FILLS.join() === "OFF,/2,/4,/8" &&
           C.glide.join() === "GLIDE,0,127,0" && C.line2.map((c) => c.join(":")).join() === "WAVE:0:8:0,DCW:0:127:0,RING:0:1:0,NOISE:0:1:0" &&
           C.env.map((c) => c.join(":")).join() === "DCW:0:127:0,D DEC:0:127:0,PITCH:-64:63:0,P DEC:0:127:0" &&
           LINE2_WAVES.join() === "SAME,SAW,SQR,PLS,DSIN,SPLS,RSAW,RTRI,RTRP",
-          "editor: SOUND EDITOR: VOICE TYPE, GLIDE, PHASE LINE 2 (WAVE, DCW, RING, NOISE) and PHASE ENV (DCW, D DEC, PITCH, P DEC): names, ranges, defaults as the FM-1's sheet");
+          "editor: SOUND EDITOR: GROOVE (STYLE as groove.c names them, PARTS, FILL, FEEL), GLIDE, PHASE LINE 2 (WAVE, DCW, RING, NOISE) and PHASE ENV (DCW, D DEC, PITCH, P DEC): names, ranges, defaults as the FM-1's");
     check(glideText(0) === "OFF" && glideText(1) === "10 MS" && glideText(127) === "2.5 S" && decayText(0) === "10 MS" && decayText(127) === "9.7 S" &&
           pctText(0, "SAME") === "SAME" && pctText(127, "OFF") === "100%" && PITCH_TEXT(0) === "OFF" && PITCH_TEXT(-64) === "-64 ST" && PITCH_TEXT(63) === "+63 ST",
           "editor: SOUND EDITOR: the texts (GLIDE OFF, 10 MS .. 2.5 S; DECAY 10 MS .. 9.7 S; PITCH -64 .. +63 ST) as the FM-1 shows them");
@@ -369,11 +373,13 @@ if (process.argv.includes("--emulator")) {
       for (const gv of [0, 1, 64, 127]) { g.glide = gv; const b = await live(2, g); if (b.glide !== gv || b.eng !== eng || b.latch !== g.latch) ok = false, bad += ` ${eng}:${gv}`; }
     }
     check(ok, `editor: SOUND EDITOR: GLIDE live on every one of the 7 sources, read back${bad}`);
-    const vo = parseSound(Uint8Array.from(meta.factory[40].rec), meta);
+    const vo = parseSound(Uint8Array.from(meta.factory[meta.factory.findIndex((x) => x.name === "SALSA DURA")].rec), meta);
     ok = true;
-    for (let ty = 0; ty < 4; ty++) { vo.vtype = ty; const b = await live(2, vo); if (b.vtype !== ty || b.eng !== 3) ok = false; }
-    check(ok, "editor: SOUND EDITOR: VOICE TYPE SOLO, GREGORIAN, NUNS, CATHEDRAL live, read back");
-    const ph = parseSound(Uint8Array.from(meta.factory[3].rec), meta);
+    for (const g of [{ style: 0, parts: 0, fill: 0, feel: 0 }, { style: 14, parts: 6, fill: 3, feel: 63 }, { style: 1, parts: 1, fill: 1, feel: -64 }]) {
+      vo.grv = { ...g }; const b = await live(2, vo); if (JSON.stringify(b.grv) !== JSON.stringify(g) || b.eng !== 3) ok = false;
+    }
+    check(ok, "editor: SOUND EDITOR: GROOVE, both ends of every control, live on a PERC track, read back");
+    const ph = parseSound(Uint8Array.from(meta.factory[2].rec), meta);   // (TROPICAL SYNTH: PHASE)
     ok = true;
     for (const pd of [{ ring: 1, noise: 0, wave: 8, dcw: 127, denv: 127, ddec: 127, penv: 63, pdec: 127 },
                       { ring: 0, noise: 1, wave: 1, dcw: 1, denv: 1, ddec: 1, penv: -64, pdec: 1 }, { ...PHASE_PD0 }]) {
@@ -382,7 +388,7 @@ if (process.argv.includes("--emulator")) {
       if (JSON.stringify(b.pd) !== JSON.stringify(pd) || b.glide !== 33) ok = false;
     }
     check(ok, "editor: SOUND EDITOR: PHASE LINE 2 and PHASE ENV, both ends of every control, live, read back");
-    const st = parseSound(Uint8Array.from(meta.factory[3].rec), meta);   // STORE IN SLOT: all of them, into slot 12, read back
+    const st = parseSound(Uint8Array.from(meta.factory[2].rec), meta);   // STORE IN SLOT: all of them, into slot 12, read back
     Object.assign(st, { name: "ALL V2", glide: 90 });
     Object.assign(st.pd, { ring: 1, noise: 1, wave: 4, dcw: 70, denv: 50, ddec: 80, penv: -12, pdec: 40 });
     const sr = buildRecord(st);
@@ -433,38 +439,38 @@ if (process.argv.includes("--emulator")) {
     const pats = [mk(16, 4, 0, 0, 40), mk(8, 2, 30, 2, 60), mk(64, 6, 127, 3, 30), mk(1, 0, 0, 1, 100)];
     const work0 = await cl.get(9, SEQ.WORK_LEN);
     const slot0 = slotFromWork(work0, pats);                 // (an empty slot B: made of the working project's tracks)
-    check(slot0.length === 2532 && slot0[0] === 1 && eq([...slot0.subarray(4, 212)], [...work0.subarray(0, 208)]) &&
-          eq([...slot0.subarray(2404)], [...work0.subarray(2440, 2568)]), "sequencer: an empty slot made of the working project's tracks and FM patches");
+    check(slot0.length === 2548 && slot0[0] === 1 && eq([...slot0.subarray(4, 228)], [...work0.subarray(0, 224)]) &&
+          eq([...slot0.subarray(2420)], [...work0.subarray(2456, 2584)]), "sequencer: an empty slot made of the working project's tracks and FM patches");
     await cl.canWrite(OBJ.SLOT + 1, slot0, info.fmt);
     await cl.put(OBJ.SLOT + 1, slot0, info.fmt);
-    const back0 = await cl.get(OBJ.SLOT + 1, 2532);
+    const back0 = await cl.get(OBJ.SLOT + 1, 2548);
     check(eq([...back0], [...slot0]) && JSON.stringify(patternsFromSlot(back0)) === JSON.stringify(pats),
           "sequencer: four patterns (all 64 steps: note, chance, ratchet, length, chord steps, locks; steps, division, swing, play mode) written into slot B, read back, parsed the same");
     const pats2 = [mk(32, 3, 10, 1, 50), mk(4, 5, 0, 0, 90), mk(16, 7, 64, 2, 20), mk(12, 1, 5, 3, 70)];
     const slot1 = slotWithPatterns(back0, pats2);
     await cl.put(OBJ.SLOT + 1, slot1, info.fmt);
-    const back1 = await cl.get(OBJ.SLOT + 1, 2532);
-    const outside = (a, b) => eq([...a.subarray(0, 212)], [...b.subarray(0, 212)]) && eq([...a.subarray(2404)], [...b.subarray(2404)]);
-    check(eq([...back1], [...slot1]) && outside(back1, back0) && !eq([...back1.subarray(212, 2404)], [...back0.subarray(212, 2404)]) &&
+    const back1 = await cl.get(OBJ.SLOT + 1, 2548);
+    const outside = (a, b) => eq([...a.subarray(0, 228)], [...b.subarray(0, 228)]) && eq([...a.subarray(2420)], [...b.subarray(2420)]);
+    check(eq([...back1], [...slot1]) && outside(back1, back0) && !eq([...back1.subarray(228, 2420)], [...back0.subarray(228, 2420)]) &&
           JSON.stringify(patternsFromSlot(back1)) === JSON.stringify(pats2),
-          "sequencer: new patterns over them: only bytes 212-2403 change, the tracks' sounds and mix (4-211) and the FM patches (2404-) stay as they were");
-    check(eq([...(await cl.get(OBJ.SLOT, 2532)).subarray(0, 1)], [0]) && eq([...(await cl.get(OBJ.SLOT + 2, 2532)).subarray(0, 1)], [0]),
+          "sequencer: new patterns over them: only bytes 228-2419 change, the tracks' sounds and mix (4-227) and the FM patches (2420-) stay as they were");
+    check(eq([...(await cl.get(OBJ.SLOT, 2548)).subarray(0, 1)], [0]) && eq([...(await cl.get(OBJ.SLOT + 2, 2548)).subarray(0, 1)], [0]),
           "sequencer: the other slots (A, C) untouched");
     const sound0 = [0, 1, 2, 3].map((t) => slotTrack(back1, t));
-    check(sound0.every((x, t) => x.eng === work0[t * 52] && x.k.length === 4), "sequencer: a slot's tracks' sources and knobs read for the step locks' names");
+    check(sound0.every((x, t) => x.eng === work0[t * 56] && x.k.length === 4), "sequencer: a slot's tracks' sources and knobs read for the step locks' names");
     const f = JSON.parse(JSON.stringify(patternFile(pats2, { slot: "B" })));
     let bad = "";
     try { parsePatternFile({ ...f, tracks: f.tracks.slice(0, 3) }); } catch (e) { bad = e.message; }
-    check(JSON.stringify(parsePatternFile(f)) === JSON.stringify(pats2) && bad === "not a GR!MM pattern file" &&
+    check(JSON.stringify(parsePatternFile(f)) === JSON.stringify(pats2) && bad === "not a COQUÍ pattern file" &&
           JSON.stringify(parsePatternFile(JSON.parse(JSON.stringify(patternFile(pats))))) === JSON.stringify(pats),
           "sequencer: a pattern file saved and loaded gives the same patterns; a damaged one is refused");
     run(recallScript(1, false));                             // recall slot B (SAVE + G3), not playing yet
     const work1 = await cl.get(9, SEQ.WORK_LEN), got = patternsFromWork(work1);
-    check(JSON.stringify(got) === JSON.stringify(pats2) && eq([...work1.subarray(0, 208)].slice(0, 29), [...back1.subarray(4, 212)].slice(0, 29)),
+    check(JSON.stringify(got) === JSON.stringify(pats2) && eq([...work1.subarray(0, 224)].slice(0, 29), [...back1.subarray(4, 228)].slice(0, 29)),
           "sequencer: slot B recalled on the virtual FM-1, the working project (object 9) holds the patterns as written; the first track's sound as in the slot");
-    const slotTracks = back1.subarray(4, 212), workTracks = work1.subarray(0, 208);
+    const slotTracks = back1.subarray(4, 228), workTracks = work1.subarray(0, 224);
     let diff = 0;
-    for (let k = 0; k < 208; k++) if (slotTracks[k] !== workTracks[k]) diff++;
+    for (let k = 0; k < 224; k++) if (slotTracks[k] !== workTracks[k]) diff++;
     check(diff === 0, `sequencer: the recalled tracks (sound and mix bytes) equal the slot's (${diff} bytes differ)`);
     vf.step(300);
     check(peak(600) < 0.0001 && !(vf.ex.web_lit_buttons() >>> BTN_PLAY & 1), "sequencer: recalled, not playing: silent, PLAY not lit");
@@ -480,7 +486,7 @@ if (process.argv.includes("--emulator")) {
     let ok = false;
     try { await cl.canWrite(OBJ.SLOT + 1, slot1, info.fmt); ok = true; } catch (e) { /* still sounding */ }
     check(!(vf.ex.web_lit_buttons() >>> BTN_PLAY & 1) && ok, "sequencer: stopped: PLAY dark, silent, a write is taken again");
-    await cl.put(OBJ.SLOT + 1, new Uint8Array(2532), info.fmt);   // (slot B empty again, as at power-on)
+    await cl.put(OBJ.SLOT + 1, new Uint8Array(SEQ.SLOT_LEN), info.fmt);   // (slot B empty again, as at power-on)
   }
 
 // STEP RECORD (the SEQUENCER's REC): the record logic of editor_core.js
@@ -579,7 +585,8 @@ if (process.argv.includes("--emulator")) {
         `editor: INFO as the FM-1 sent it (GR!MM ${info.firmware}, protocol ${info.proto})`);
   const set = await cl.get(OBJ.SET, 168), s1 = await cl.get(OBJ.SND, 64), f1 = await cl.get(OBJ.FACT, 64);
   const want = (k) => unpack7([...bytes(rec.frames[k].rx)].slice(14, -1));
-  check(eq([...set], [...want(1)]) && eq([...s1], [...want(2)]) && recordOk(f1), "editor: the settings, sound 1 and factory sound 1 as the FM-1 sent them");
+  check(eq([...set], [...want(1)]) && eq([...s1], [...want(2)]) && f1.length === 64,   // (a recording of an FM-1 with GR!MM: its records have GR!MM's magic, not COQUÍ's)
+        "editor: the settings, sound 1 and factory sound 1 as the FM-1 sent them");
   const smp = await cl.smpInfo();
   check(smp.length === 4 && smp[0].state >= 0, `editor: the samples' INFO as the FM-1 sent it (${smp.map((s) => s.state < 0 ? "?" : s.name || "-").join(", ")})`);
   function eq(a, b) { return a.length === b.length && a.every((x, i) => x === b[i]); }
@@ -595,45 +602,45 @@ if (process.argv.includes("--emulator")) {
   try { execFileSync(process.execPath, ["--check", "build/web/editor_check.mjs"], { stdio: "pipe" }); } catch (e) { syntax = String(e.stderr).split("\n").slice(0, 4).join(" "); }
   check(!syntax, "editor page: web/editor.js parses" + (syntax ? ` (${syntax})` : ""));
   check(!/demo/i.test(html) && !/demo/i.test(js), 'editor page: the word "demo" is nowhere (page, script)');
-  check(/<a class="lnk px" href="index\.html">WEB EMULATOR<\/a>/.test(html) && />Try the GR!MM web emulator<\/a><\/b>/.test(html),
-        'editor page: the header link says WEB EMULATOR (to index.html), the footer "Try the GR!MM web emulator"');
+  check(/<a class="lnk px" href="index\.html">WEB EMULATOR<\/a>/.test(html) && />Try the COQUÍ web emulator<\/a><\/b>/.test(html) &&
+        /<a class="lnk" href="\.\.\/">The COQUÍ hub<\/a>/.test(html),
+        'editor page: the header link says WEB EMULATOR (to index.html), the footer "Try the COQUÍ web emulator" and the hub');
   const bk = html.slice(html.indexOf('id="s-backup"'), html.indexOf("</section>", html.indexOf('id="s-backup"')));
   check(/four sample slots/.test(bk) && !/Samples are not in it/i.test(html) && !/keep their WAV files/.test(bk) && !/cannot send its samples/.test(html),
         'editor page: BACKUP says it holds the four samples; the old "keep their WAV files" is gone');
-  check(/choir recordings: <a [^>]*>VocalSet<\/a> \(Wilkins et al\., 2018\), <a class="lnk" href="https:\/\/creativecommons\.org\/licenses\/by\/4\.0\/">CC BY 4\.0<\/a>/.test(html) &&
-        /choir recordings: VocalSet \(Wilkins et al\., 2018\), CC BY 4\.0/.test(lic) && lic.includes("https://creativecommons.org/licenses/by/4.0/") &&
+  check(!/VocalSet/.test(html) && /COQUÍ's changes/.test(lic) && /based on <a class="lnk" href="https:\/\/github\.com\/GRiMMBIENT\/grimm">GR!MM<\/a>/.test(html) &&
         ["Press Start 2P", "Terminus", "CC0 1.0", "Emscripten", "Dinghy", "Felucca", "SLOOP"].every((c) => html.includes(c)),
-        "editor page and LICENSING.md: the VocalSet credit (CC BY 4.0, its link) added, the old credits still there");
-  check(info.firmware === "2.0" && meta.version === "2.0" && info.factory === 44 && meta.factory.length === 44 && /EDITOR 2\.0/.test(html) &&
-        /"FIRMWARE", "GR!MM " \+ i\.firmware/.test(js) && /\["FACTORY SOUNDS", i\.factory\]/.test(js),
-        `editor page: CONNECT shows GR!MM ${info.firmware} and ${info.factory} factory sounds; the header EDITOR 2.0`);
-  const names = meta.factory.map((x) => x.name), choirs = ["GREGORIAN", "PLAINCHANT", "CATHEDRAL CHOIR", "NUNS"];
+        "editor page and LICENSING.md: GR!MM credited, the old credits still there, no VocalSet (COQUÍ has no choirs)");
+  check(info.firmware === meta.version && /^\d\.\d/.test(info.firmware) && info.factory === 44 && meta.factory.length === 44 &&
+        /<b class="px">EDITOR<\/b>/.test(html) && /"FIRMWARE", "COQUÍ " \+ i\.firmware/.test(js) && /\["FACTORY SOUNDS", i\.factory\]/.test(js),
+        `editor page: CONNECT shows COQUÍ ${info.firmware} and ${info.factory} factory sounds; the header EDITOR`);
+  const names = meta.factory.map((x) => x.name), choirs = ["SALSA DURA", "TUMBAO BASS", "MONTUNO PIANO", "CUATRO"];   // (COQUÍ's)
   const srcs = meta.factory.map((x) => meta.engines[parseSound(Uint8Array.from(x.rec), meta).eng].name);
   check(names.length === 44 && new Set(names).size === 44 && choirs.every((c) => names.some((n) => n.toUpperCase() === c)) &&
         names.some((n) => n.length > 12) && srcs.every(Boolean) && /slotBox\(f, slotLabel/.test(js) && /el\("small", \{ cls: "src" \}/.test(js) &&
         !/\.slot\s*\{[^}]*(text-overflow|white-space:\s*nowrap)/.test(html) && /\.slot \.src \{ display: block/.test(html),
         `editor page: all 44 factory sounds by their full names (longest: ${names.reduce((a, n) => (n.length > a.length ? n : a), "")}), the source a tag on a second line, nothing cut`);
-  check(/id="smp-norm" checked> NORMALISE/.test(html) && /\$\("smp-norm"\)\.checked/.test(js) && /GR!MM 2\.0's encoder no longer clicks/.test(html),
-        "editor page: SAMPLES has the NORMALISE switch (on by default), its help text for V2.0");
-  check(/p\.note, footer\.note \{ color: var\(--n\)/.test(html) && /--n: #8f887b/.test(html) && /--m: #5e5b54/.test(html) &&
-        /class="tag px" href="hub\.html"/.test(html) && /<div class="drip" role="presentation">/.test(html) &&
-        /outline: 3px solid var\(--f\)/.test(html) && /--f: #ff6a3d/.test(html) && /<a href="#editor" data-s="editor">/.test(html) &&
+  check(/id="smp-norm" checked> NORMALISE/.test(html) && /\$\("smp-norm"\)\.checked/.test(js),
+        "editor page: SAMPLES has the NORMALISE switch (on by default)");
+  check(/p\.note, footer\.note \{ color: var\(--n\)/.test(html) && /--n: #9a80b3/.test(html) && /--m: #7d5f98/.test(html) && /--a: #ff2d8a/.test(html) &&
+        /class="tag px" href="\.\.\/"/.test(html) && /<div class="drip" role="presentation">/.test(html) &&
+        /outline: 3px solid var\(--f\)/.test(html) && /--f: #ff9a1a/.test(html) && /<a href="#editor" data-s="editor">/.test(html) &&
         /@media \(max-width: 599px\)[^]*nav \{[^}]*flex-direction: row; overflow-x: auto/.test(html),
-        "editor page: help text #8f887b, the GR!MM tag to hub.html, the drip, 3px #ff6a3d focus, the menu one scrolling row under 600 px");
+        "editor page: COQUÍ's palette (help text #9a80b3, ROSA, 3px MANGO focus), the COQUÍ tag to the hub, the menu one scrolling row under 600 px");
   check(/<a href="#sequencer" data-s="sequencer">SEQUENCER<\/a>/.test(html) && ["sq-slot", "sq-import", "sq-now", "sq-send", "sq-preview", "sq-stop", "sq-save", "sq-load", "sq-clear", "sq-grid", "sq-step", "sq-trk"].every((i) => html.includes(`id="${i}"`)) &&
         /repeat\(8, minmax\(0, 1fr\)\)/.test(html) && /@media \(min-width: 900px\) \{ \.sqgrid/.test(html) && /canWrite\(OBJ\.SLOT \+ k, next/.test(js) &&
         /coqui-slot-\$\{L\}-backup/.test(js) && /slotWithPatterns\(cur, sq\.pats\)/.test(js) && /type: "reply"/.test(readFileSync("web/worklet.js", "utf8")),
         "editor page: the SEQUENCER section (grid 8 wide on a phone, 16 on a computer; IMPORT, SEND with a probe and a backup first, PREVIEW, files)");
   check(["sq-rec", "sq-rest", "sq-tie", "sq-mon", "sq-octd", "sq-octu", "sq-midi", "sq-midi-scan", "sq-recst", "sq-recmsg"].every((i) => html.includes(`id="${i}"`)) &&
         /min-height: 44px/.test(html) && /\.sqgrid\.rec \.sqs\.sel \{[^}]*outline: 3px solid var\(--f\)/.test(html) &&
-        /FM1_PORT = \/felucca\|fm-\?1\|m-\?vave\|gr!\?mm\/i/.test(js) && /localStorage\.getItem\(SQ_MIDI_KEY\)/.test(js) && /try \{ return localStorage/.test(js) && /try \{ localStorage\.setItem/.test(js) &&
+        /FM1_PORT = \/felucca\|fm-\?1\|m-\?vave\|gr!\?mm\|coqu\/i/.test(js) && /localStorage\.getItem\(SQ_MIDI_KEY\)/.test(js) && /try \{ return localStorage/.test(js) && /try \{ localStorage\.setItem/.test(js) &&
         /requestMIDIAccess\(\{ sysex: false \}\)/.test(js) && /CHORD NOT ON THE FM-1/.test(js) && /c === 0xb0 && d1 === 64/.test(js) &&
         /sqTyping\(\)/.test(js) && /\(sq\.rec && sqOn\(\)\)/.test(js) && /k === "Backspace"/.test(js) && /k === " "/.test(js) && /k === "z"/.test(js) && /k === "x"/.test(js) &&
         /b\.append\(s\.note \? noteName\(s\.note\) : "OFF"\)/.test(js) && /\(v\) => \(v \? noteName\(v\) : "OFF"\)/.test(js),
         "editor page: STEP RECORD (REC, REST, TIE, MONITOR, MIDI IN without the FM-1's port, kept in localStorage in try/catch, the pedal, the computer's keys, notes as names, the cursor outlined, 44 px buttons)");
-  check(/PHASE LINE 2/.test(js) && /PHASE ENV/.test(js) && /V2_SOUND_CONTROLS/.test(js) && /VOICE_TYPES/.test(js) && /glideText/.test(js) && /decayText/.test(js) &&
-        /b-store/.test(js),
-        "editor page: the SOUND EDITOR draws VOICE TYPE, GLIDE, PHASE LINE 2 and PHASE ENV from the sheet's names");
+  check(/PHASE LINE 2/.test(js) && /PHASE ENV/.test(js) && /V2_SOUND_CONTROLS/.test(js) && /GROOVE_STYLES/.test(js) && /"GROOVE"/.test(js) &&
+        !/VOICE_TYPES/.test(js) && /glideText/.test(js) && /decayText/.test(js) && /b-store/.test(js),
+        "editor page: the SOUND EDITOR draws GROOVE (PERC), GLIDE, PHASE LINE 2 and PHASE ENV from the sheet's names; no VOICE TYPE");
 }
 
 console.log(fail ? `test_web: ${fail} failed` : "test_web: all ok");

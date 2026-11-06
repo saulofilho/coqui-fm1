@@ -21,6 +21,7 @@ Copyright (C) 2026 COQUÍ, GPL-3.0-only.
 | The FM patches BRASS, PIANO, CUATRO, BASS (`tools/gen_fm_patches.py` → `firmware/gen/coqui_fm.h`) and the 44 factory sounds (`store.c`: GR!MM's replaced) | COQUÍ's own, written for it; no factory data of any instrument |
 | GENERATE in the clave (`firmware/src/gen.c`: NOCHE, CALLE, FIESTA, `GEN_CL`), AMBIENTE (`firmware/src/amb.c`, its page in `coqui.c` and `ui.c`), HOME's night (`ui.c`: `cq_moon`, `cq_frog`, the congas, the stars in place of GR!MM's webs, eye and candles), `tests/perc/gen_clave_test.py` | COQUÍ's own code, over GR!MM's GENERATE and HOME animation |
 | The release tooling: `.github/workflows/release.yml` (it calls `zvenson/fm1-build`, the FM-1 Firmware Hub's workflow), `tools/prep_release.sh`, `CHANGELOG.md`, `docs/TESTE-FM1.md`, `docs/HUB-EMAIL.md` | COQUÍ's own |
+| The editor made COQUÍ's (`web/editor.html`, `editor.js`, `editor_core.js`: its name, colours and sea divider, GROOVE in the SOUND EDITOR, COQUÍ's record, sample and slot formats; `firmware/src/editor.c`: a factory kit's GROOVE bytes; `web/test_web.mjs` updated) | COQUÍ changes, over GR!MM's editor |
 | The ten PERC factory sounds in `store.c` (SALSA DURA .. BARRIL LENTO, where GR!MM's choirs and VOICE sounds were) | |
 | The palette (noche tropical) and the boot screen (the moon, the palm, the cucubanos, the sea, the coquí) in `firmware/src/ui.c` | |
 | `README.md`, `MANUAL.md`, `PLAN.md`, `fmhub.json`, `docs/card.png`, `docs/screens/` (rendered from the firmware by host mode) | |

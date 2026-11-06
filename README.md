@@ -9,7 +9,7 @@ with a HUMAN knob that loosens the hand.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
 
-**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed)
+**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed) · **[The editor](https://saulofilho.github.io/coqui-fm1/emu/editor.html)** (sounds, sequencer, samples, backup over USB)
 
 Free and open source (GPL-3.0). Unofficial firmware, not made or endorsed by M-VAVE.
 Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#credits)).

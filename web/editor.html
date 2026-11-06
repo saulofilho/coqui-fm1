@@ -1,19 +1,19 @@
 <!doctype html>
 <!-- SPDX-License-Identifier: GPL-3.0-only
-     Copyright (C) 2026 GR!MM
-     GR!MM's editor: the FM-1's sounds, samples and a backup, over Web MIDI SysEx (docs/EDITOR_PROTOCOL.md). Its sections
+     Copyright (C) 2026 GR!MM; COQUÍ changes Copyright (C) 2026 COQUÍ (its name, look, GROOVE, PERC)
+     COQUÍ's editor (GR!MM's): the FM-1's sounds, samples and a backup, over Web MIDI SysEx (docs/EDITOR_PROTOCOL.md). Its sections
      in a left menu and its way of editing (the tracks' sounds, live, as the knobs) follow SLOOP's editor (isod89/sloop-fm1,
-     web/, GPL-3.0); its code and look are GR!MM's. The sounds play here in GR!MM's own engine (coqui.wasm, the firmware's
+     web/, GPL-3.0); its code is GR!MM's. The sounds play here in the firmware's own engine (coqui.wasm, the firmware's
      code), its screen beside the keys. The font: Press Start 2P (SIL OFL 1.1, LICENSES/OFL-PressStart2P.txt). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>COQUÍ editor</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 fill=%22%230b0b0a%22/%3E%3Crect x=%223%22 y=%223%22 width=%2210%22 height=%2210%22 fill=%22%23c8321e%22/%3E%3C/svg%3E">
+<link rel="icon" href="../favicon.png">
 <style>
 @font-face { font-family: "Press Start 2P"; src: url("PressStart2P-Regular.ttf") format("truetype"); font-display: block; }
-:root { --k: #0b0b0a; --d: #26251f; --m: #5e5b54; --n: #8f887b; --l: #b8b4a9; --w: #e8e4d8; --a: #c8321e; --f: #ff6a3d; color-scheme: dark; }
+:root { --k: #0c0818; --d: #2b1d45; --m: #7d5f98; --n: #9a80b3; --l: #f2c49b; --w: #fff3e2; --a: #ff2d8a; --f: #ff9a1a; color-scheme: dark; }   /* (COQUÍ: noche tropical, as the FM-1's) */
 /* --m: off, empty, disabled things; --n: help text (as the hub's --ash); --f: keyboard focus (the hub's ember) */
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--k); color: var(--l); }
@@ -121,15 +121,9 @@ canvas#alg { display: block; width: 100%; max-width: 432px; image-rendering: pix
 #sq-recmsg.bad { color: var(--f); }
 a.lnk { color: var(--l); }
 /* the drip under the header: the hub's, in this page's colours */
-.drip { height: 22px; margin: 0 6px 10px; background:
-  linear-gradient(var(--d), var(--d)) 0 0 / 100% 6px no-repeat,
-  linear-gradient(var(--a), var(--a)) 8% 6px / 6px 9px no-repeat,
-  linear-gradient(var(--a), var(--a)) 21% 6px / 6px 16px no-repeat,
-  linear-gradient(var(--a), var(--a)) 37% 6px / 6px 6px no-repeat,
-  linear-gradient(var(--a), var(--a)) 52% 6px / 6px 14px no-repeat,
-  linear-gradient(var(--a), var(--a)) 68% 6px / 6px 8px no-repeat,
-  linear-gradient(var(--a), var(--a)) 83% 6px / 6px 16px no-repeat,
-  linear-gradient(var(--a), var(--a)) 95% 6px / 6px 7px no-repeat; }
+.drip { height: 18px; margin: 0 6px 10px; background:   /* (COQUÍ: the sea, as the hub's dividers) */
+  radial-gradient(circle at 8px -3px, transparent 9px, var(--a) 10px, var(--a) 12px, transparent 13px) 0 7px / 16px 12px repeat-x,
+  radial-gradient(circle at 8px -3px, transparent 9px, var(--m) 10px, var(--m) 12px, transparent 13px) 8px 0 / 16px 12px repeat-x; }
 /* keyboard focus: seen on everything that takes it */
 a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, nav a:focus-visible, .slot:focus-visible,
 input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2px; }
@@ -148,8 +142,8 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
 </head>
 <body>
 <header>
-  <a class="tag px" href="hub.html" aria-label="GR!MM: the hub">GR!MM</a>
-  <div class="bar"><b class="px">EDITOR 2.0</b><span><a class="lnk px" href="index.html">WEB EMULATOR</a> · <span id="conn" class="px">NOT CONNECTED</span></span></div>
+  <a class="tag px" href="../" aria-label="COQUÍ: the hub">COQUÍ</a>
+  <div class="bar"><b class="px">EDITOR</b><span><a class="lnk px" href="index.html">WEB EMULATOR</a> · <span id="conn" class="px">NOT CONNECTED</span></span></div>
 </header>
 <div class="drip" role="presentation"></div>
 <div class="wrap">
@@ -164,7 +158,7 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
     <a href="#backup" data-s="backup">BACKUP</a>
   </nav>
   <main>
-    <div id="msgs"><div id="msg" class="px">LOADING GR!MM…</div><div id="prog"><i></i></div></div>
+    <div id="msgs"><div id="msg" class="px">LOADING COQUÍ…</div><div id="prog"><i></i></div></div>
 
     <section id="s-connect">
       <h2>CONNECT</h2>
@@ -173,13 +167,11 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
         <button id="b-try">TRY WITHOUT AN FM-1</button>
         <button id="b-disconnect">DISCONNECT</button>
       </div>
-      <p class="note">Connect the FM-1 with a USB data cable, switch it on with GR!MM, close other apps that use its MIDI
+      <p class="note">Connect the FM-1 with a USB data cable, switch it on with COQUÍ, close other apps that use its MIDI
         port, then click CONNECT and allow MIDI (SysEx) when the browser asks. Chrome or Edge on a computer.
-        TRY WITHOUT AN FM-1 runs GR!MM's own code in this page instead: everything works, nothing is kept.</p>
+        TRY WITHOUT AN FM-1 runs COQUÍ's own code in this page instead: everything works, nothing is kept.</p>
       <p class="note">The FM-1 only accepts writes while it is stopped and silent: stop the sequencer and let every
         note, release and DELAY or SPACE tail end. Nothing is ever written without you clicking a button.</p>
-      <p class="note">GR!MM 2.0 adds FX, SETTINGS (MIDI CHANNEL's CH n &gt; SEL, CLOCK, LATCH) and the samples in a
-        backup; an FM-1 with GR!MM 1.0 doesn't answer those (update it on the FM-1 Firmware Hub), the rest works.</p>
       <table class="kv" id="info"></table>
       <div class="row"><button id="b-log" class="toggle">MIDI LOG</button><button id="b-logclear">CLEAR LOG</button></div>
       <pre id="log" hidden></pre>
@@ -230,14 +222,14 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
       <div class="grp play">
         <canvas id="screen" width="240" height="240"></canvas>
         <div class="keys">
-          <h3>PLAY: GR!MM IN THIS PAGE, THE SELECTED TRACK</h3>
+          <h3>PLAY: COQUÍ IN THIS PAGE, THE SELECTED TRACK</h3>
           <div class="kbd" id="kbd"></div>
           <div class="row">
             <button id="b-panic">ALL NOTES OFF</button>
             <span class="px">KEYS: Z X C V B N M , . / · S D F H J L ; ' · Q .. O (HIGHER)</span>
           </div>
           <p class="note">Every move of a control reaches the track at once: on the FM-1 (live, as its knobs; nothing is
-            saved until STORE IN SLOT) and in GR!MM here, whose screen this is and whose keys these are. Turn a knob on
+            saved until STORE IN SLOT) and in COQUÍ here, whose screen this is and whose keys these are. Turn a knob on
             the FM-1 and this page follows. A latched note stays until its key again, or ALL NOTES OFF. The TRACK
             filter (HOME's CUTOFF, RESONANCE, FX) belongs to the track, not to a sound.</p>
         </div>
@@ -288,14 +280,14 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
         after the track's last step. IMPORT SLOT reads a slot, IMPORT: PLAYING NOW what the FM-1 plays at this moment.
         SEND TO SLOT first downloads a backup of the slot, then changes only its patterns (the sounds and mix stay),
         reads it back and checks it; it is refused while the FM-1 plays or still sounds. Then, on the FM-1, hold SAVE + F3
-        (A), G3 (B), A3 (C) or B3 (D) to recall it. PREVIEW plays the patterns in this page's GR!MM, with the sounds of
+        (A), G3 (B), A3 (C) or B3 (D) to recall it. PREVIEW plays the patterns in this page's COQUÍ, with the sounds of
         T1&ndash;T4 as the SOUND EDITOR has them. SAVE FILE and LOAD FILE keep the patterns on this computer.</p>
       <p class="note">STEP RECORD: press REC, then play: a MIDI keyboard (pick it under MIDI IN; the FM-1's own port is not
         listed), or the computer's keys A W S E D F T G Y H U J K (one octave, Z and X move it). Each note goes into the
         selected step and the cursor moves on, wrapping at the track's last step. REST, the sustain pedal (CC64) and Space
         skip a step; TIE makes the step before one longer; Backspace clears the step; the arrow keys move the cursor. Three
         or more keys pressed together that are one of the FM-1's chords (CHORD TYPE and VOICING, SCALE aside) make a chord
-        step; any other chord writes its lowest note. MONITOR plays what you press in this page's GR!MM.</p>
+        step; any other chord writes its lowest note. MONITOR plays what you press in this page's COQUÍ.</p>
     </section>
 
     <section id="s-samples">
@@ -304,11 +296,11 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
         <label class="px"><input type="checkbox" id="smp-norm" checked> NORMALISE</label></div>
       <div id="smp"></div>
       <p class="note">Any WAV (8 to 32 bit, float, mono or stereo, any rate) becomes mono, 22050 Hz, IMA ADPCM, as
-        tools/fm1_sample_upload.py makes it; GR!MM 2.0's encoder no longer clicks on bright samples. A slot holds 6.64 s
+        tools/fm1_sample_upload.py makes it; A slot holds 6.64 s
         (longer: cut, with a short fade). The root note is C4 unless the file name has one ("drone_A2.wav"). A name is
         8 characters (the slot's, what the FM-1 shows): a longer one keeps its number ("Sample-002": SAMP-002).</p>
       <p class="note">NORMALISE (switched on as the page opens) brings every WAV to the same loudness; switched off, a
-        sample keeps its own level (quiet ones stay quiet, as recorded). RESTORE FACTORY SAMPLES writes GR!MM's four
+        sample keeps its own level (quiet ones stay quiet, as recorded). RESTORE FACTORY SAMPLES writes COQUÍ's four
         (URCHIN, LEAVE, NIKOLAI, M-SOFT) over all four slots; an FM-1 also gets them by itself at power-on in a slot
         that holds nothing. A BACKUP holds the four slots too.</p>
     </section>
@@ -320,7 +312,7 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
       <p class="note">The project's effects, as the FX pages on the FM-1 (TAPE, GRAIN, DELAY, SPACE, MASTER, DRIVE), and
         each track's filter TYPE and POS (MIXER 2) and its five sends (MIXER 1). READ first; then every move reaches the FM-1 at once, as its knobs
         (kept with the project: its autosave). The FM-1's own knobs and this page don't follow each other: READ again
-        after turning them. MASTER, DRIVE, the filter's TYPE and POS and the TAPE and DRIVE sends are GR!MM V2's.</p>
+        after turning them.</p>
     </section>
 
     <section id="s-settings">
@@ -335,10 +327,9 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
         channel n on the selected track and ignores the others. CLOCK: INT, the FM-1's own tempo; INT+OUT, the same
         and its MIDI clock out over USB (START, STOP and 24 pulses a beat); USB or TRS, it follows the MIDI clock from
         there (START, CONTINUE, STOP; the jack is MIDI IN only). LATCH: FROM SOUND, a sound you load brings its own
-        LATCH (as GR!MM 1.0); ALWAYS OFF, a sound you load sets the track's LATCH off (you can still latch it by hand:
+        LATCH; ALWAYS OFF, a sound you load sets the track's LATCH off (you can still latch it by hand:
         EDIT's LATCH, SEL + OCT+). The same on the FM-1: SYSTEM's KNOB 2, SYSTEM 2's KNOB 4, SYSTEM 3's
-        KNOB 1. READ first; WRITE changes only these three (the FM-1 stopped and silent). GR!MM 1.0 has no CLOCK, and
-        no LATCH setting.</p>
+        KNOB 1. READ first; WRITE changes only these three (the FM-1 stopped and silent).</p>
     </section>
 
     <section id="s-backup">
@@ -351,14 +342,14 @@ input[type=range]:focus-visible { outline: 3px solid var(--f); outline-offset: 2
       <p class="note">A backup holds all 64 user sounds, slots A–D, the settings and the four sample slots (the same
         file as tools/fm1_editor_test.py makes). Restoring first makes a backup of what the FM-1 has now (downloaded),
         then writes everything, then reads it back to check; a sample slot that already holds the same sample is not
-        written again, one empty in the backup is emptied. An older backup (GR!MM 1.0's, without samples) restores the
+        written again, one empty in the backup is emptied. An older backup (without samples) restores the
         rest and leaves the sample slots as they are.</p>
     </section>
     <footer class="note">
-      <p><b><a class="lnk" href="index.html">Try the GR!MM web emulator</a></b>: the FM-1's panel in your browser, the same firmware.</p>
+      <p><b><a class="lnk" href="index.html">Try the COQUÍ web emulator</a></b>: the FM-1's panel in your browser, the same firmware · <b><a class="lnk" href="../">The COQUÍ hub</a></b></p>
       <p>COQUÍ · based on <a class="lnk" href="https://github.com/GRiMMBIENT/grimm">GR!MM</a> (GPL-3.0) · <a class="lnk" href="LICENSE">GPL-3.0-only</a> · <a class="lnk" href="https://github.com/saulofilho/coqui-fm1">source</a> · <a class="lnk" href="LICENSING.md">credits and licences</a> · fonts: Press Start 2P, <a class="lnk" href="LICENSES/OFL-PressStart2P.txt">SIL OFL 1.1</a>; Terminus, <a class="lnk" href="Terminus-LICENSE.txt">SIL OFL 1.1</a> · factory samples: <a class="lnk" href="LICENSES/CC0-1.0.txt">CC0 1.0</a> · built with Emscripten (<a class="lnk" href="LICENSES/MIT-Emscripten.txt">MIT</a>, musl <a class="lnk" href="LICENSES/MIT-musl.txt">MIT</a>)</p>
       <p>Built on Dinghy (zvenson), Felucca (Leo Kuroshita, Hügelton Instruments) and SLOOP (isod89); the editor's
-        sections and live editing follow SLOOP's editor. M-VAVE and FM-1 are trademarks of their owners; GR!MM is not
+        sections and live editing follow SLOOP's editor. M-VAVE and FM-1 are trademarks of their owners; COQUÍ is not
         affiliated with or endorsed by them.</p>
     </footer>
   </main>

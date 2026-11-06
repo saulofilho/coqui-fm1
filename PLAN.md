@@ -37,8 +37,9 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    áudios. Atualizar depois das Fases 4 e 5.
    **Emulador web (feito 2026-11-05):** `hub/emu/`, o firmware compilado para WebAssembly (`web/build_web.sh`), com a
    página do GR!MM adaptada (cores, PERC/GROOVE na ajuda, link para o hub). `node web/test_web.mjs --emulator` confere
-   som e telas contra o modo host. **Pendente:** o editor web (`web/editor*`) ainda é o do GR!MM; o formato dos sons e
-   dos slots já foi ajustado no `editor_core.js`, mas a página e seus testes não. Fora do hub até ser adaptado.
+   som e telas contra o modo host. **Editor web (feito 2026-11-06):** `hub/emu/editor.html`, adaptado (marca, cores,
+   GROOVE no SOUND EDITOR para sons PERC no lugar do VOICE TYPE, formatos do COQUÍ); `node web/test_web.mjs` inteiro
+   (emulador e editor) passa. O `editor.c` passou a mandar os bytes do GROOVE dos kits de fábrica.
 4. ✅ **Melódico (feita 2026-11-06):** modos novos do ARP (`arp.c`): TUMBAO, MONTUNO, GUAJEO, MERENGUE, BACHATA, linhas
    de 2 compassos sobre os graus do acorde segurado (uma tecla só vira acorde maior), no compasso do sequenciador.
    Patches FM BRASS, PIANO, CUATRO, BASS. Os 34 sons do GR!MM viraram sons latinos (categorias LEAD, PAD, BRASS, ORGAN,
@@ -53,7 +54,7 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    `tools/prep_release.sh X.Y` (versão, card, telas, emulador, hub), `fmhub.json` final (com o emulador em `play`),
    `CHANGELOG.md`, roteiro `docs/TESTE-FM1.md` (exigências do Hub + o COQUÍ + CPU) e e-mail `docs/HUB-EMAIL.md`. As
    ferramentas `fm1_cpu.py` e `fm1_sample_upload.py` aceitavam só o GR!MM: agora `FM-1_923`. **Falta:** o teste no
-   FM-1 físico → `tools/prep_release.sh 1.0` → tag `v1.0` → e-mail ao Hub. Pendência menor: o editor web.
+   FM-1 físico → `tools/prep_release.sh 1.0` → tag `v1.0` → e-mail ao Hub.
 
 ## Orçamento (GR!MM 2.0.2 sem mudanças, medido em 2026-11-05)
 
