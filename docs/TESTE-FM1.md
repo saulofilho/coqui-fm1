@@ -84,5 +84,9 @@ densidade do FIESTA.
 | Flash | | novo (UC25HQ80) / antigo / não sei |
 | Ouvido | | o que soou estranho (um tambor, um groove, uma linha, um som de fábrica) |
 
-Com a Parte A toda ✅ e a CPU folgada, a 1.0 pode sair: `git tag v1.0 && git push origin v1.0` (o GitHub compila,
-assina e publica), e o e-mail para o Hub (`docs/HUB-EMAIL.md`) vai.
+Com a Parte A toda ✅ e a CPU folgada, a 1.0 pode sair:
+
+1. os avisos de "0.1, em desenvolvimento, ainda não testado" (README, MANUAL, hub) reescritos com o que o teste mostrou;
+2. `tools/prep_release.sh 1.0` (versão, card, telas, emulador, hub), revisar o `git diff`, commitar e dar push;
+3. `git tag v1.0 && git push origin v1.0`: o GitHub compila, testa, assina e publica o `coqui-1.0.fwsc`;
+4. o e-mail para o Hub (`docs/HUB-EMAIL.md`), ajustado com o que o teste mostrou.
