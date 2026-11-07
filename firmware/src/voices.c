@@ -84,10 +84,9 @@ typedef struct {
     volatile int32_t grv_style, grv_parts, grv_fill, grv_feel;   /* (COQUÍ) a PERC track's GROOVE: STYLE (0 OFF), PARTS,
                                                  * FILL (OFF, 2, 4, 8 bars), FEEL (-64 .. 63; groove.c) */
 } track_t;
-#define TRK_DEF {ENG_VA, {{0, 40, 50, 12}, {0, 64, 64, 20}, {0, 0, 127, 0}, {0, 64, 64, 30}, {4, 0, 40, 0}, {0, 64, 80, 64}, {0, 0, 60, 0}}, 100, 0, 100, 0, 64, 0, \
+#define TRK_DEF {ENG_VA, {{0, 10, 90, 30}, {0, 64, 64, 20}, {0, 0, 127, 0}, {0, 64, 64, 30}, {4, 0, 40, 0}, {0, 64, 80, 64}, {0, 0, 60, 0}}, 100, 0, 100, 0, 64, 0, \
                  {22, 85, 127, 89}, 0, 0, 0, 0, 0, 4, 1, 50, 64, 0, 0, 0, 127, 0, 100, 0, 0, {{0}}}
-static track_t trk[NT] = {TRK_DEF, TRK_DEF, TRK_DEF, TRK_DEF};   /* VA: SAW X2, DETUNE 40, CUTOFF 50, RESONANCE 12
-                                                 * (COQUÍ: a warm, mellow default sound, not GR!MM's bright raw saw)
+static track_t trk[NT] = {TRK_DEF, TRK_DEF, TRK_DEF, TRK_DEF};   /* VA: SAW, DETUNE 10, CUTOFF 90, RESONANCE 30
                                                  * (Felucca's ANALOG); FM: BELL as made, DETUNE 20; SAMPLE: slot 1,
                                                  * the whole sample, forward; VOICE: A, SHIFT 0, BUZZ 64, BREATH 10
                                                  * (Felucca's); WHEEL: 3BAR, PERC OFF, CLICK 40, DRIVE 0 (Felucca's);
