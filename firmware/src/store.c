@@ -953,6 +953,15 @@ static void project_new(void)                   /* NEW: the four tracks' power-o
             nq_put(NQ_RESTART, t, 0);
         }
     }
+#if !defined DINGHY_HOST && !defined GRIMM_WEB
+    {                                           /* (COQUÍ) on a device, a NEW track plays a COQUÍ sound, not GR!MM's raw
+                                                 * saw: pressing keys sounds like the firmware at once. The host tests and
+                                                 * the web emulator keep the bright-saw default (fx_test uses it as the
+                                                 * signal for the track filter and DRIVE), so this is device-only. */
+        const uint8_t *r = cat_item(CAT_LEAD, 2);   /* TROPICAL SYNTH */
+        if (r) for (t = 0; t < NT; t++) snd_apply(r, t);
+    }
+#endif
     trk_mute = trk_solo = 0;                    /* (rc9: no track left muted or soloed) */
     seq_clear();
 }
