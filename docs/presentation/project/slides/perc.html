@@ -1,0 +1,18 @@
+<section id="perc" data-transition="fade" style="background:#0c0818;color:#fff3e2;font-family:'Rubik', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:row;align-items:center;gap:80px">
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#ff2d8a">PERC · PERC.C</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#fff3e2">22 tambores sintetizados, sem nenhum sample</h2>
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-size:30px;line-height:1.4;color:#d9c7ea"><b style="color:#f2c49b">Cada golpe</b> é um tom (senoide, segunda parcial, queda de afinação) mais um ruído filtrado (SVF), cada um decaindo do seu jeito.</p>
+<p style="font-size:30px;line-height:1.4;color:#d9c7ea"><b style="color:#f2c49b">Pool próprio de 10 golpes:</b> a percussão nunca rouba as 6 vozes do baixo e do piano.</p>
+<p style="font-size:30px;line-height:1.4;color:#d9c7ea"><b style="color:#f2c49b">Grupos de choke:</b> a conga aberta corta a abafada, como a mão na pele.</p>
+<p style="font-size:30px;line-height:1.4;color:#d9c7ea"><b style="color:#f2c49b">HUMAN:</b> cada golpe um pouco atrasado, mais fraco e desafinado, ao acaso.</p>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:20px">
+<img src="/_blob/b60cbaf64a60f20091a381ed8e01b4d6" alt="A página SOUND de um track PERC no FM-1: tumba, conga, quinto, bongôs e timbales desenhados em pixel art, a conga acesa, e os knobs KIT, TUNE, DECAY e HUMAN" style="width:600px;height:600px;object-fit:contain;border:4px solid #2b1d45">
+<p style="font-size:24px;color:#9a80b3">A tela SOUND de um track PERC</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#9a80b3">COQUÍ · firmware para o M-VAVE FM-1</p>
+<aside>A primeira decisão grande: samples ou síntese? A flash tem espaço para uns 26 segundos de áudio no total, então a percussão inteira é sintetizada, só com inteiros. Cada instrumento é uma linha numa tabela: afinação, parcial, decaimentos, filtro. Os valores foram calculados num computador e colados no código como números, porque o chip não faz float. O teste mediu cada tecla: no começo vários sons passavam do fundo de escala em até 3,5 dB; cada instrumento ganhou um ganho próprio para ficar entre -6 e -16 dB.</aside>
+</section>

@@ -1,0 +1,19 @@
+<section id="desafios" data-transition="fade" style="background:#fff3e2;color:#1c1330;font-family:'Rubik', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:24px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#c4146a">DESAFIOS</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#1c1330">O que deu trabalho, e como foi resolvido</h2>
+</div>
+<table style="font-family:'Rubik', Arial, sans-serif;font-size:26px;color:#1c1330">
+<tr style="background:#1c1330"><th style="width:42%;text-align:left;color:#fff3e2">Desafio</th><th style="width:58%;text-align:left;color:#fff3e2">Solução</th></tr>
+<tr><td>Sem FPU: o link falhou por uma divisão de 64 bits</td><td>Ponto fixo em tudo; os decaimentos refeitos só com divisões de 32 bits</td></tr>
+<tr style="background:#f6e6cf"><td>Memória de buffers cheia (342 de 344 KB)</td><td>AMBIENTE como cenas sobre os efeitos existentes; os coros saíram (−30 KB)</td></tr>
+<tr><td>Só 6 vozes para 4 tracks</td><td>A percussão com um pool próprio de 10 golpes</td></tr>
+<tr style="background:#f6e6cf"><td>O formato de save herdado sem espaço</td><td>Track de 52 para 56 bytes (versão 9) e marcadores próprios</td></tr>
+<tr><td>FM-1s novos vêm com outro chip de flash</td><td>Aceitar os dois IDs JEDEC no app, no rescue e no loader</td></tr>
+<tr style="background:#f6e6cf"><td>Testes do GR!MM presos aos sons dele</td><td>Reapontados para equivalentes; referências refeitas de propósito</td></tr>
+<tr><td>Ferramentas que só aceitavam o GR!MM</td><td>Achado lendo o código antes do aparelho: aceitar FM-1_923</td></tr>
+<tr style="background:#f6e6cf"><td>WSL sem MIDI USB; rtmidi sem pacote no Python novo</td><td>Instalar pelo Windows, com Python 3.12</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#6b5a85">COQUÍ · firmware para o M-VAVE FM-1</p>
+<aside>Os desafios foram quase todos de restrição, não de algoritmo. O primeiro build para o chip falhou no link: uma divisão de 64 bits escondida numa função herdada, inlined no código novo. A memória cheia mudou o desenho do AMBIENTE. A falta de vozes mudou o desenho do PERC. E alguns só apareceriam no aparelho: as ferramentas de CPU e de samples recusavam qualquer firmware que não fosse o GR!MM; pegamos isso lendo o código antes do teste. O último foi de ambiente: o python-rtmidi não tem pacote pronto para o Python mais novo no Windows.</aside>
+</section>

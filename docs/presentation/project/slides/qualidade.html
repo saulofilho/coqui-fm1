@@ -1,0 +1,34 @@
+<section id="qualidade" data-transition="fade" style="background:#0c0818;color:#fff3e2;font-family:'Rubik', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:24px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#ff2d8a">QUALIDADE</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#fff3e2">Testar fora do aparelho, para o aparelho só confirmar</h2>
+</div>
+<div style="display:flex;flex-direction:row;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<div style="background:#150e27;border:2px solid #2b1d45;border-radius:16px;padding:32px;display:flex;flex-direction:row;gap:28px;align-items:center">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;color:#1cd8c4;width:140px">18</p>
+<p style="font-size:28px;line-height:1.4;color:#d9c7ea">suítes em modo host: áudio comparado a referências, telas, saves, MIDI, cada estilo e cada linha</p>
+</div>
+<div style="background:#150e27;border:2px solid #2b1d45;border-radius:16px;padding:32px;display:flex;flex-direction:row;gap:28px;align-items:center">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:44px;font-weight:700;color:#1cd8c4;width:140px">ASan</p>
+<p style="font-size:28px;line-height:1.4;color:#d9c7ea">teste de estresse com AddressSanitizer e UBSan, botões e MIDI aleatórios</p>
+</div>
+<div style="background:#150e27;border:2px solid #2b1d45;border-radius:16px;padding:32px;display:flex;flex-direction:row;gap:28px;align-items:center">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:44px;font-weight:700;color:#1cd8c4;width:140px">CI</p>
+<p style="font-size:28px;line-height:1.4;color:#d9c7ea">tag → compila, roda os testes, assina e publica; simulado antes num clone limpo</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:36px;font-weight:700;color:#f2c49b">Bugs que os testes pegaram</h3>
+<ul style="font-size:28px;line-height:1.45;color:#d9c7ea;display:flex;flex-direction:column;gap:14px;padding-left:32px">
+<li>Estouro de buffer no teste de estresse ao copiar tracks do formato antigo</li>
+<li>Sons de percussão 3,5 dB acima do resto</li>
+<li>Groove somado passando do fundo de escala</li>
+<li>Um valor de FEEL usado como marcador escondido</li>
+<li>Editor mandando o kit de fábrica sem os bytes do GROOVE</li>
+</ul>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#9a80b3">COQUÍ · firmware para o M-VAVE FM-1</p>
+<aside>A regra foi: nada vai para o aparelho sem passar no host. O modo host gera o áudio e as telas do firmware no computador, e os testes comparam com referências gravadas. Quando a mudança de som era intencional, a referência foi refeita de propósito, nunca para fazer o teste passar. O teste de estresse com sanitizers achou um estouro de buffer real. E o teste web garante que o emulador do site é o mesmo firmware, amostra por amostra. O release no GitHub roda tudo de novo e assina o pacote.</aside>
+</section>

@@ -1,0 +1,28 @@
+<section id="arquitetura" data-transition="fade" style="background:#0c0818;color:#fff3e2;font-family:'Rubik', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:24px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#ff2d8a">ARQUITETURA</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#fff3e2">Tudo acontece na interrupção de áudio, em três etapas</h2>
+</div>
+<div style="display:flex;flex-direction:row;align-items:stretch;gap:24px">
+<div style="flex:1;background:#150e27;border:2px solid #2b1d45;border-radius:16px;padding:36px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#ff9a1a">1 · QUEM TOCA</p>
+<p style="font-size:28px;line-height:1.4;color:#d9c7ea">O relógio do sequenciador (96 ticks por semínima) acorda, a cada tick:</p>
+<ul style="font-size:28px;line-height:1.5;color:#fff3e2"><li>os passos do track</li><li>GROOVE · groove.c</li><li>as linhas do ARP · arp.c</li><li>GENERATE · gen.c</li></ul>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:28px;background:#7d5f98;align-self:center"></x-shape>
+<div style="flex:1;background:#150e27;border:2px solid #2b1d45;border-radius:16px;padding:36px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#ff9a1a">2 · QUEM SOA</p>
+<p style="font-size:28px;line-height:1.4;color:#d9c7ea">note_on() decide pela fonte do track:</p>
+<ul style="font-size:28px;line-height:1.5;color:#fff3e2"><li>6 vozes compartilhadas: VA, FM, SAMPLE, WHEEL, PHYS, PHASE</li><li>PERC: um pool próprio de 10 golpes · perc.c</li></ul>
+</div>
+<x-shape kind="arrow-right" style="width:56px;height:28px;background:#7d5f98;align-self:center"></x-shape>
+<div style="flex:1;background:#150e27;border:2px solid #2b1d45;border-radius:16px;padding:36px;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#ff9a1a">3 · A SAÍDA</p>
+<p style="font-size:28px;line-height:1.4;color:#d9c7ea">Mixer por track e efeitos, regulados pelo AMBIENTE · amb.c:</p>
+<ul style="font-size:28px;line-height:1.5;color:#fff3e2"><li>SPACE, DELAY, TAPE, GRAIN</li><li>MASTER e DRIVE</li><li>DAC e áudio USB</li></ul>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#d9c7ea">Fora da interrupção, o laço principal cuida da tela (ui.c), dos saves na flash (store.c) e do editor por SysEx (editor.c). Um único arquivo C inclui todos: um só binário.</p>
+<p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#9a80b3">COQUÍ · firmware para o M-VAVE FM-1</p>
+<aside>O modelo mental é simples: a cada bloco de 5,8 ms, a interrupção de áudio avança o relógio, decide quais notas começam e terminam, sintetiza as vozes e passa pelos efeitos. Os módulos novos do COQUÍ (groove, linhas, generate, perc, ambiente) se penduram em pontos que já existiam: o tick do sequenciador, o note_on e as páginas de efeito. Isso manteve o risco baixo: o caminho do áudio do GR!MM não foi reescrito, só ganhou ramificações.</aside>
+</section>

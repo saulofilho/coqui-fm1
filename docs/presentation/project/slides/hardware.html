@@ -1,0 +1,17 @@
+<section id="hardware" data-transition="fade" data-section="A base técnica: o chip, o fork e a arquitetura" style="background:#0c0818;color:#fff3e2;font-family:'Rubik', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:24px">
+<p style="font-family:'Press Start 2P', 'Courier New', monospace;font-size:24px;color:#ff2d8a">O HARDWARE</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#fff3e2">O alvo: um chip sem FPU e 5,8 ms para cada bloco de áudio</h2>
+</div>
+<table style="font-family:'Rubik', Arial, sans-serif;font-size:30px;color:#fff3e2">
+<tr><th style="width:28%;text-align:left;color:#f2c49b">Peça</th><th style="width:72%;text-align:left;color:#f2c49b">O que isso significa</th></tr>
+<tr><td>JieLi AC791N, 240 MHz</td><td>Um núcleo pi32v2, compilador clang 4 da própria JieLi</td></tr>
+<tr><td>Sem FPU</td><td>Nada de float: tudo em ponto fixo (Q15), e nada de divisão de 64 bits</td></tr>
+<tr><td>96 KB de RAM</td><td>Mais uma pool de 336 KB para buffers grandes (reverb, delay)</td></tr>
+<tr><td>1 MB de flash</td><td>~568 KB para o programa; o resto para saves, samples e o atualizador</td></tr>
+<tr><td>44,1 kHz, blocos de 256</td><td>Cada bloco de áudio tem 5,8 ms para ficar pronto, ou estala</td></tr>
+<tr><td>Tela 240×240, 27 teclas</td><td>7 encoders, 14 botões, LEDs, USB MIDI e áudio, MIDI TRS</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;font-size:24px;color:#9a80b3">COQUÍ · firmware para o M-VAVE FM-1</p>
+<aside>Para quem vem de web ou backend: aqui não tem sistema operacional, não tem float, não tem malloc para nada que importa. O áudio roda numa interrupção que tem 5,8 milissegundos para entregar 256 amostras; se atrasar, você ouve um estalo. Uma divisão de 64 bits não compila: o link falha porque a biblioteca não existe. Essas restrições moldaram todas as decisões que vêm a seguir.</aside>
+</section>

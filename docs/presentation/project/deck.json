@@ -1,0 +1,21 @@
+{
+  "v": 4,
+  "createdOnFiles": {"v": 1, "at": "2026-11-06T16:40:00Z"},
+  "lists": "css",
+  "title": "COQUÍ: firmware latino para o FM-1",
+  "order": ["cover", "pitch", "inspiracao", "hardware", "linhagem", "arquitetura", "perc", "groove", "linhas", "mood", "visual", "hub", "desafios", "qualidade", "aparelho", "processo", "licoes", "fim"],
+  "sections": {
+    "s1": {"description": "A ideia: o que é o COQUÍ e de onde veio", "start": "cover"},
+    "s2": {"description": "A base técnica: o chip, o fork e a arquitetura", "start": "hardware"},
+    "s3": {"description": "O que foi construído: PERC, GROOVE, linhas, mood, visual e hub", "start": "perc"},
+    "s4": {"description": "Desafios e qualidade: o que deu trabalho e como foi testado", "start": "desafios"},
+    "s5": {"description": "Resultado e lições: o aparelho, o processo e o que fica", "start": "aparelho"}
+  },
+  "faces": {
+    "space-grotesk": {"family": "Space Grotesk", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&display=swap"},
+    "rubik": {"family": "Rubik", "href": "https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap"},
+    "press-start-2p": {"family": "Press Start 2P", "href": "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"},
+    "jetbrains-mono": {"family": "JetBrains Mono", "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"}
+  },
+  "designSystems": []
+}
