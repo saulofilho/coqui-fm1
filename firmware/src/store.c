@@ -806,6 +806,48 @@ static void slot_from(uint8_t *d, const uint8_t *q, uint32_t tn)   /* a slot sav
     }
     for (k = 0; k < NT * LOCK_PK; k++) d[k] = 0;
 }
+static void dm_note(uint32_t t, uint32_t step, uint8_t note, uint8_t len)   /* (COQUÍ) a step of track t's pattern */
+{
+    if (step < SEQ_N) {
+        seq[t].pat[0].st[step].note = note;
+        seq[t].pat[0].st[step].len = len ? len : 1u;
+    }
+}
+/* (COQUÍ) a Dembow / Perreo welcome scene for a fresh FM-1 (one that has never saved a project): PLAY plays the whole
+ * orquesta — a perreo perc GROOVE, an 808 bass, a NOCHE pad in chords and a perreo pluck — so a new player feels COQUÍ
+ * at once, instead of GR!MM's blank VA saw. A 2-bar loop in A minor; the arrays below are easy to retune. Only a device
+ * with no working project gets it (store_boot, below); NEW still clears to blank. The tracks start from TRK_DEF and the
+ * sequences empty (seq_init ran first), so this only loads the four sounds and writes the bass / pad / lead notes. */
+static void project_demo(void)
+{
+    static const uint8_t BHIT[4] = {0u, 6u, 8u, 14u};      /* the perreo "boom" within a bar (1/16 steps) */
+    static const uint8_t LPOS[8] = {0u, 6u, 8u, 12u, 16u, 22u, 24u, 28u};
+    static const uint8_t LEAD[8] = {64u, 57u, 60u, 62u, 64u, 60u, 57u, 64u};   /* E4 A3 C4 D4 | E4 C4 A3 E4 */
+    const uint8_t *r;
+    uint32_t i;
+
+    seq_bpm = 95;                                          /* dembow / perreo tempo */
+
+    if ((r = cat_item(CAT_PERC, 1)) != 0) snd_apply(r, 0); /* T1 drums: PERREO 2004 (kit + its GROOVE: plays on PLAY) */
+
+    if ((r = cat_item(CAT_BASS, 4)) != 0) snd_apply(r, 1); /* T2 bass: 808 BOOM — a 2-bar root line (Am -> F) */
+    seq[1].steps = 32, seq[1].div = 4;
+    for (i = 0; i < 4u; i++) {
+        dm_note(1, BHIT[i], 33u, 2u);                      /* bar 1: A1 */
+        dm_note(1, 16u + BHIT[i], 29u, 2u);                /* bar 2: F1 */
+    }
+
+    if ((r = cat_item(CAT_PAD, 0)) != 0) snd_apply(r, 2);  /* T3 chords: NOCHE PAD (chord mode voices the triad) */
+    seq[2].steps = 32, seq[2].div = 4;
+    dm_note(2, 0u, 57u, 16u);                              /* A3 held a bar; the tonic over the F bass (an airy Am/F) */
+    dm_note(2, 16u, 57u, 16u);
+    trk[2].level = 74;
+
+    if ((r = cat_item(CAT_LEAD, 1)) != 0) snd_apply(r, 3); /* T4 topline: PERREO PLUCK — an A-minor-pentatonic hook */
+    seq[3].steps = 32, seq[3].div = 4;
+    for (i = 0; i < 8u; i++) dm_note(3, LPOS[i], LEAD[i], 2u);
+    trk[3].level = 82;
+}
 static void store_boot(void)                    /* power-on: the newest good copy of the working project, the slots
                                                  * (an older version's: the next autosave writes them as OBJ_VER); the
                                                  * sounds made 64 B ones, if need be */
@@ -820,6 +862,8 @@ static void store_boot(void)                    /* power-on: the newest good cop
         uk_work(w + OBJ_HDR, UW_GLOBALS | UW_CHAIN, vs);
         obj_gen[OBJ_WORK] = st_rd32(w + 4);
         obj_crc[OBJ_WORK] = vs[0] == OBJ_VER ? st_crc(w + OBJ_HDR, WORK_PK) : 0;   /* (0: saved again) */
+    } else {
+        project_demo();                         /* (COQUÍ) a fresh FM-1: the welcome orquesta, not GR!MM's blank VA saw */
     }
     slot_dirty = slot_lost = slot_up = 0;
     for (i = 0; i < SLS_N; i++) {               /* the stream's sectors: good, or bad (not erased, not good) */

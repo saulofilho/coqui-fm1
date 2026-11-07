@@ -1030,7 +1030,7 @@ static void clog_p(uint32_t src, uint32_t pg, const volatile int32_t *p, int32_t
 static volatile int32_t sv_slot, sv_cat, sv_type, sv_act, pj_slot, pj_act;   /* SOUNDS: SLOT, CATEGORY, TYPE (0 ALL,
                                                  * then a source + 1), ACTION; PROJECTS: SLOT (A..D), ACTION */
 static const char *const SV_ACT[3] = {"LOAD", "SAVE", "CLEAR"};
-static const char *const PJ_ACT[4] = {"LOAD", "SAVE", "ERASE", "NEW"};
+static const char *const PJ_ACT[5] = {"LOAD", "SAVE", "ERASE", "NEW", "DEMO"};   /* (COQUÍ: DEMO loads the welcome scene) */
 static int32_t brw_cat[NT], brw_pos[NT] = {-1, -1, -1, -1};   /* PRESETS: a track's CATEGORY, its place in its list */
 static char trk_nm[NT][16];                     /* a track's sound's name from the editor (TRACK SET), "" none; */
 static int32_t trk_nm_e[NT];                    /* .. the source it is for */
@@ -1320,7 +1320,7 @@ static int32_t knob_max(uint32_t pg, uint32_t k)
     return pg == PG_SOUND ? sel_engine()->max[k] : pg == PG_SOURCE ? (k == 3u ? 127 : k == 2u ? 0 : k ? 1 : (int32_t)NENG - 1) :
            pg == PG_GRID ? GRID_MAX[k] : pg == PG_PATTERN ? PATT_MAX[k] :
            pg == PG_SOUNDS ? (k == 0u ? SND_N - 1 : k == 1u ? NCAT - 1 : k == 2u ? (int32_t)NENG : 2) :
-           pg == PG_PROJECTS ? 3 : pg == PG_SCALE ? (k ? NSCALE - 1 : 11) : pg == PG_CHORD ? (k ? NVOICING - 1 : NCHORD - 1) :
+           pg == PG_PROJECTS ? 4 : pg == PG_SCALE ? (k ? NSCALE - 1 : 11) : pg == PG_CHORD ? (k ? NVOICING - 1 : NCHORD - 1) :
            pg == PG_ARP ? (k == 0u ? NARPMODE - 1 : k == 1u ? NARPRATE - 1 : k == 2u ? 4 : 100) :
            pg == PG_LFO ? (k == 0u ? 127 : k == 1u ? 100 : k == 2u ? NLFODEST - 1 : NLFOSHAPE - 1) :
            pg == PG_SONG ? (k == 0u ? SONG_N - 1 : k == 1u ? SONG_END : k == 2u ? 16 : NSONGMODE - 1) :
@@ -1608,7 +1608,7 @@ static void sv_do(void)                         /* OCT+ on a SAVE page: its ACTI
             sv_sound((uint32_t)sv_act, i, (uint32_t)clamp(sv_cat, 0, NCAT - 1), sel);
         return;
     }
-    switch (clamp(pj_act, 0, 3)) {              /* PROJECTS */
+    switch (clamp(pj_act, 0, 4)) {              /* PROJECTS */
     case 0: slot_do_recall((uint32_t)pj_slot & 3u); return;
     case 1: slot_do_save((uint32_t)pj_slot & 3u); return;
     case 2:
@@ -1617,11 +1617,17 @@ static void sv_do(void)                         /* OCT+ on a SAVE page: its ACTI
         slot_erase((uint32_t)pj_slot & 3u);
         hd_say("ERASED");
         return;
-    default:
+    case 3:
         undo_take(UK_ONE | ++uk_n, -1);
         project_new();
         brw_forget();
         hd_say("NEW");
+        return;
+    default:                                    /* (COQUÍ) DEMO: the Dembow / Perreo welcome orquesta (undo brings back) */
+        undo_take(UK_ONE | ++uk_n, -1);
+        project_demo();
+        brw_forget();
+        hd_say("DEMO");
         return;
     }
 }
