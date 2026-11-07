@@ -863,7 +863,11 @@ static void store_boot(void)                    /* power-on: the newest good cop
         obj_gen[OBJ_WORK] = st_rd32(w + 4);
         obj_crc[OBJ_WORK] = vs[0] == OBJ_VER ? st_crc(w + OBJ_HDR, WORK_PK) : 0;   /* (0: saved again) */
     } else {
-        project_demo();                         /* (COQUÍ) a fresh FM-1: the welcome orquesta, not GR!MM's blank VA saw */
+#if !defined DINGHY_HOST && !defined GRIMM_WEB
+        project_demo();                         /* (COQUÍ) a fresh FM-1: the welcome orquesta, not GR!MM's blank VA saw.
+                                                 * Device only: the host tests and the web emulator keep the clean default
+                                                 * (120 BPM, empty) — the DEMO action loads it there on demand instead. */
+#endif
     }
     slot_dirty = slot_lost = slot_up = 0;
     for (i = 0; i < SLS_N; i++) {               /* the stream's sectors: good, or bad (not erased, not good) */
