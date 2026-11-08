@@ -83,9 +83,11 @@ read GR!MM's or any other firmware's. If anything goes wrong, the Hub's **Rescue
 
 ## Learn it
 
+- **Beginner's guide (PDF):** [English](docs/coqui-first-guide.pdf) · [Português](docs/coqui-guia-iniciante.pdf) — the controls, presets and rhythms, step by step.
 - [MANUAL.md](MANUAL.md): PERC, GROOVE, and what COQUÍ changes from GR!MM.
 - [PLAN.md](PLAN.md): how COQUÍ was made and what is left, in Portuguese.
 - [CHANGELOG.md](CHANGELOG.md): what each release brings.
+- **[synth-firmware](https://github.com/saulofilho/synth-firmware)**: the method COQUÍ was built with, packaged as a Claude Code plugin — the phases, the chip rules, the toolchain and the release — to build the next FM-1 firmware.
 
 ## Releasing
 
