@@ -3,7 +3,8 @@
 Fonte do deck de 18 slides (em português) que conta como o COQUÍ foi feito: inspiração, hardware, arquitetura, PERC,
 GROOVE, linhas, mood, visual, hub, desafios, testes, o teste no FM-1, o processo e as lições.
 
-- **Deck publicado (privado, só o dono abre):** https://claude.ai/artifact/KPh9DhvQsyT1ciZziXXrEK
+- **Deck publicado (privado, só o dono abre):** https://claude.ai/artifact/KPh9DhvQsyT1ciZziXXrEK (PT) · https://claude.ai/artifact/LeErWJ4L7neT5QpQBn6y6i (EN)
+- **PDF para baixar:** [coqui-apresentacao-pt.pdf](coqui-apresentacao-pt.pdf) · [coqui-presentation-en.pdf](coqui-presentation-en.pdf) (20 slides cada)
 - Tipo: Artifact "Slides" do claude.ai. Exporta PDF e PPTX pelo próprio deck; o modo apresentador mostra as notas.
 
 ## Arquivos
