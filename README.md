@@ -4,8 +4,9 @@
 congas, bongos, timbales, güiro, clave and cowbell, all synthesized on the FM-1, played by hand or by the sequencer,
 with a HUMAN knob that loosens the hand.
 
-> **Version 1.0.** Tested on a real FM-1: installed from the official V15 and from another firmware, left again,
-> an interrupted update resumed ([the results](docs/TEST-RESULTS-1.0.md)). Unofficial: install at your own risk.
+> **Version 1.1.** A welcome scene out of the box (the **DEMO** action on the PROJECTS page) and a COQUÍ sound as the
+> default, over 1.0. Tested on a real FM-1: installed from the official V15 and from another firmware, left again, an
+> interrupted update resumed ([the results](docs/TEST-RESULTS-1.0.md)). Unofficial: install at your own risk.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
 
@@ -68,10 +69,12 @@ MIDI: notes 53 (F3) to 79 (G5) as above; notes outside fold in by two octaves.
 
 ## Install
 
-COQUÍ is not on the Firmware Hub yet. To install a build by hand (Python 3, `pip install mido python-rtmidi`):
+COQUÍ is not on the Firmware Hub yet. Download the latest `coqui-X.Y.fwsc` from
+[Releases](https://github.com/saulofilho/coqui-fm1/releases) (built, tested and signed by GitHub), then install it
+(Python 3, `pip install mido python-rtmidi`):
 
 ```
-python3 tools/fm1_install.py build/coqui.fwsc
+python3 tools/fm1_install.py coqui-1.1.fwsc
 ```
 
 Or use any FM-1 web installer that takes a `.fwsc` file, in Chrome or Edge. COQUÍ keeps its own saves: it does not
