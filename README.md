@@ -13,6 +13,8 @@ with a HUMAN knob that loosens the hand.
 
 **[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed) · **[The editor](https://saulofilho.github.io/coqui-fm1/emu/editor.html)** (sounds, sequencer, samples, backup over USB)
 
+**Beginner's guide (PDF):** [English](docs/coqui-first-guide.pdf) · [Português](docs/coqui-guia-iniciante.pdf) — the controls, presets and rhythms, step by step.
+
 Free and open source (GPL-3.0). Unofficial firmware, not made or endorsed by M-VAVE.
 Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#credits)).
 
