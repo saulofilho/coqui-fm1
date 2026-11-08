@@ -1,5 +1,16 @@
 # COQUÍ changelog
 
+## 1.1
+
+A welcome out of the box, so a new FM-1 feels like COQUÍ from the first press.
+
+- **The welcome scene**: a fresh FM-1 boots into a Dembow/Perreo *orquesta* — a perreo perc groove, an 808 bass, a
+  night pad and a perreo pluck across the four tracks — instead of GR!MM's blank VA saw. A **DEMO** action on the
+  PROJECTS page (beside LOAD / SAVE / ERASE / NEW) loads it on demand on any device.
+- **A COQUÍ default sound**: on a device, a blank/NEW track plays TROPICAL SYNTH, not a raw saw, so pressing the keys
+  sounds like the firmware at once.
+- Device only: the host tests and the web emulator keep the clean default, so the whole test suite is unchanged.
+
 ## 1.0
 
 The first release: COQUÍ, a Latin and Caribbean groovebox firmware for the M-VAVE FM-1, built on GR!MM 2.0.2.
