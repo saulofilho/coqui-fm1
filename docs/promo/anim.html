@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>COQUÍ anim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Rubik:wght@400;500;600&family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--night:#0c0818;--card:#150e27;--line:#2b1d45;--cream:#fff3e2;--muted:#d9c7ea;--sand:#f2c49b;--mauve:#9a80b3;
+    --rosa:#ff2d8a;--mango:#ff9a1a;--mar:#1cd8c4;--lima:#a6e82e;
+    --disp:'Space Grotesk',Arial,sans-serif;--sans:'Rubik',Arial,sans-serif;--pix:'Press Start 2P',monospace;--mono:'JetBrains Mono',monospace}
+  *{margin:0;box-sizing:border-box}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#000}
+  #stage{position:relative;width:1920px;height:1080px;background:var(--night);font-family:var(--sans);color:var(--cream)}
+  .scene{position:absolute;inset:0;opacity:0;display:flex}
+  .pix{font-family:var(--pix);letter-spacing:2px}
+  .mono{font-family:var(--mono)}
+  .disp{font-family:var(--disp);font-weight:700;line-height:1}
+  /* BOOT */
+  #boot{flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 40%,#17122e,#0c0818 70%)}
+  #moon{position:absolute;top:120px;right:260px;width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle at 38% 36%,#fff6e6,#e9d9b8);box-shadow:0 0 60px rgba(255,243,226,.25)}
+  .star{position:absolute;width:8px;height:8px;border-radius:50%;background:#fff3e2}
+  #sea{position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(#7d5f98,#ff2d8a)}
+  #frog{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%)}
+  .fc{position:absolute;width:20px;height:20px}
+  #quini{position:absolute;left:50%;top:30%;transform:translate(-50%,0);font-family:var(--pix);font-size:52px;color:var(--rosa);opacity:0}
+  #boottag{position:absolute;bottom:52px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:34px;color:var(--mauve)}
+  /* BARS */
+  #bars{flex-direction:column;align-items:center;justify-content:center;gap:70px}
+  #bars .eq{display:flex;align-items:flex-end;gap:18px;height:360px}
+  #bars .bar{width:46px;border-radius:12px 12px 0 0}
+  #bars h1{font-size:140px;text-align:center}
+  #bars .sub{font-size:46px;color:var(--muted)}
+  #bars .pix{font-size:32px;color:var(--mango)}
+  /* NUMS */
+  #nums{flex-direction:column;justify-content:center;gap:80px;padding:150px}
+  #nums .pix{font-size:34px;color:var(--rosa)}
+  #nums .row{display:flex;gap:48px}
+  .ncard{flex:1;background:var(--card);border:3px solid var(--line);border-radius:28px;padding:60px;display:flex;flex-direction:column;gap:18px;transform-origin:center}
+  .ncard .big{font-family:var(--disp);font-weight:700;font-size:200px;line-height:.9}
+  .ncard .lab{font-size:38px;color:var(--cream)}
+  /* PLAY */
+  #play{align-items:center;justify-content:space-between;padding:150px;gap:90px}
+  #play .t{flex:1;display:flex;flex-direction:column;gap:30px}
+  #play .pix{font-size:32px;color:var(--mango)}
+  #play h1{font-size:118px}
+  #play .sub{font-size:44px;color:var(--muted)}
+  #gwrap{position:relative;width:680px;height:680px}
+  #gwrap img{width:680px;height:680px;image-rendering:pixelated;border:6px solid var(--line);border-radius:14px;display:block}
+  #sweep{position:absolute;top:6px;bottom:6px;width:70px;background:linear-gradient(90deg,transparent,rgba(166,232,46,.45),transparent);mix-blend-mode:screen}
+  /* CTA */
+  #cta{flex-direction:column;align-items:center;justify-content:center;gap:48px;
+    background:radial-gradient(circle at 50% 28%,rgba(28,216,196,.12),transparent 55%),radial-gradient(circle at 50% 92%,rgba(255,45,138,.12),transparent 55%),var(--night)}
+  #cta h1{font-size:300px;letter-spacing:-4px}
+  #cta .fos{font-size:56px;color:var(--sand)}
+  #cta .url{font-family:var(--mono);font-size:52px;color:var(--mango)}
+  #cta .sw{display:flex;gap:22px}
+  #cta .sw i{width:90px;height:90px;border-radius:16px;display:block}
+</style></head>
+<body>
+<div id="stage">
+  <div id="boot" class="scene">
+    <div id="moon"></div>
+    <div id="sea"></div>
+    <div id="frog"></div>
+    <div id="quini">♪ QUÍ!</div>
+    <div id="boottag">COQUÍ · firmware for the M-VAVE FM-1</div>
+  </div>
+  <div id="bars" class="scene">
+    <p class="pix">WHAT IT IS</p>
+    <div class="eq" id="eq"></div>
+    <h1 class="disp">a Latin groovebox</h1>
+    <p class="sub">salsa · bomba · dembow · merengue</p>
+  </div>
+  <div id="nums" class="scene">
+    <p class="pix">WHAT'S INSIDE</p>
+    <div class="row">
+      <div class="ncard" data-i="0"><span class="big" style="color:var(--rosa)">22</span><span class="lab">synthesized<br>percussion</span></div>
+      <div class="ncard" data-i="1"><span class="big" style="color:var(--mango)">14</span><span class="lab">groove<br>rhythms</span></div>
+      <div class="ncard" data-i="2"><span class="big" style="color:var(--mar)">5</span><span class="lab">bass &amp; piano<br>lines</span></div>
+    </div>
+  </div>
+  <div id="play" class="scene">
+    <div class="t">
+      <p class="pix">PRESS PLAY</p>
+      <h1 class="disp">It plays the<br>whole rhythm<br>by itself.</h1>
+      <p class="sub">Bass &amp; piano follow the chord you hold.</p>
+    </div>
+    <div id="gwrap"><img src="img/groove.png" alt="groove"><div id="sweep"></div></div>
+  </div>
+  <div id="cta" class="scene">
+    <h1 class="disp" id="ctaword">COQUÍ</h1>
+    <p class="fos">Free &amp; open source — for the M-VAVE FM-1</p>
+    <p class="url">saulofilho.github.io/coqui-fm1</p>
+    <div class="sw"><i style="background:var(--rosa)"></i><i style="background:var(--mango)"></i><i style="background:var(--mar)"></i><i style="background:var(--lima)"></i></div>
+  </div>
+</div>
+<script>
+// ---------- build static DOM ----------
+function rnd(seed){ // deterministic
+  let s=seed%2147483647; if(s<=0)s+=2147483646;
+  return ()=>{ s=s*16807%2147483647; return (s-1)/2147483646; };
+}
+// stars
+(function(){ const r=rnd(7), boot=document.getElementById('boot');
+  for(let i=0;i<46;i++){ const st=document.createElement('div'); st.className='star';
+    st.dataset.p=(r()*6.28).toFixed(3); st.dataset.sp=(0.6+r()*1.6).toFixed(3);
+    const x=r()*1920, y=r()*560; st.style.left=x+'px'; st.style.top=y+'px';
+    const sc=0.5+r()*1.3; st.style.transform='scale('+sc.toFixed(2)+')';
+    st.style.background=(r()<0.25)?'#a6e82e':'#fff3e2';
+    boot.appendChild(st);
+  }
+})();
+// frog sprite (from the firmware's cq_frog), cell 20px
+const FROG=["...lll....lll...","..lkwkl..lkwkl..","..lkkkl..lkkkl..",".llllllllllllll.","llllllllllllllll","lldllllllllllldl",".llllldlldlllll.","..ll.llllll.ll..",".ll...llll...ll.","ll............ll"];
+const COL={l:'#f2c49b',k:'#2b1d45',w:'#fff3e2',d:'#c98f6b'};
+(function(){ const f=document.getElementById('frog'); const C=20;
+  f.style.width=(16*C)+'px'; f.style.height=(10*C)+'px';
+  for(let y=0;y<10;y++)for(let x=0;x<16;x++){ const ch=FROG[y][x]; if(ch==='.')continue;
+    const d=document.createElement('div'); d.className='fc'; d.style.left=(x*C)+'px'; d.style.top=(y*C)+'px';
+    d.style.width=C+'px'; d.style.height=C+'px'; d.style.background=COL[ch]||COL.l;
+    if(ch==='w')d.dataset.eye='glint'; if(ch==='k')d.dataset.eye='pupil';
+    f.appendChild(d);
+  }
+  // eyelids (for blink): cover the two eyes
+  ['lidL','lidR'].forEach((id,i)=>{ const lid=document.createElement('div'); lid.id=id; lid.className='fc';
+    lid.style.left=((i?9:2)*C)+'px'; lid.style.top=(1*C)+'px'; lid.style.width=(5*C)+'px'; lid.style.height=(2*C)+'px';
+    lid.style.background=COL.l; lid.style.opacity='0'; f.appendChild(lid); });
+  // mouth layer
+  const m=document.createElement('div'); m.id='mouth'; f.appendChild(m);
+})();
+// equalizer bars
+(function(){ const eq=document.getElementById('eq'); const cols=['#ff2d8a','#ff9a1a','#1cd8c4','#a6e82e','#fff3e2'];
+  for(let i=0;i<18;i++){ const b=document.createElement('div'); b.className='bar';
+    b.style.background=cols[i%cols.length]; b.dataset.f=(1.1+(i%5)*0.5).toFixed(2); b.dataset.ph=(i*0.7).toFixed(2);
+    eq.appendChild(b);
+  }
+})();
+
+// ---------- timeline ----------
+const SC=[["boot",0,2.3],["bars",2.3,4.6],["nums",4.6,6.7],["play",6.7,8.5],["cta",8.5,10.0]];
+const FADE=0.28;
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+function ease(x){x=clamp(x,0,1);return x*x*(3-2*x);}
+function sceneOpacity(t,s,e){ // fade in at s, fade out before e
+  if(t<s-0.001||t>e+0.001)return 0;
+  let o=1;
+  if(s>0) o=Math.min(o, ease((t-s)/FADE));
+  if(e<9.999) o=Math.min(o, ease((e-t)/FADE));
+  return o;
+}
+function renderAt(t){
+  // scenes
+  for(const [name,s,e] of SC){ const el=document.getElementById(name);
+    const op=sceneOpacity(t,s,e); el.style.opacity=op; el.style.display=op>0?'flex':'none'; }
+  // BOOT internals
+  { const lt=t;
+    for(const st of document.querySelectorAll('#boot .star')){ const p=+st.dataset.p, sp=+st.dataset.sp;
+      st.style.opacity=(0.25+0.6*Math.abs(Math.sin(t*sp+p))).toFixed(3); }
+    // frog sing cycle every 1.2s: 0 closed, 0.15-0.35 "CO", 0.4-0.8 "QUÍ!"
+    const cyc=(lt%1.2);
+    const m=document.getElementById('mouth'); const C=20;
+    let mouth='',puff=0, qop=0;
+    if(cyc>0.12&&cyc<0.34){ // CO
+      mouth='<div class="fc" style="left:'+(6*C)+'px;top:'+(6*C)+'px;width:'+(4*C)+'px;height:'+(1.4*C)+'px;background:#2b1d45;border-radius:40%"></div>'; puff=0.03;
+    } else if(cyc>=0.34&&cyc<0.72){ // QUÍ! (open mouth)
+      mouth='<div class="fc" style="left:'+(5*C)+'px;top:'+(5.6*C)+'px;width:'+(6*C)+'px;height:'+(2.6*C)+'px;background:#2b1d45;border-radius:46%"></div>'; puff=0.06; qop=1;
+    }
+    m.innerHTML=mouth;
+    // blink every 2.6s for 0.12s
+    const bl=(lt%2.6); const lidop=(bl<0.12)?1:0;
+    const L=document.getElementById('lidL'),R=document.getElementById('lidR'); if(L){L.style.opacity=lidop;R.style.opacity=lidop;}
+    // breathing / puff
+    document.getElementById('frog').style.transform='translate(-50%,-50%) scale('+(1+puff).toFixed(3)+')';
+    // QUÍ note pop
+    const q=document.getElementById('quini'); const qp=clamp((cyc-0.34)/0.12,0,1);
+    q.style.opacity=(qop? (0.2+0.8*qp)*ease((0.72-cyc)/0.2):0).toFixed(2);
+    q.style.transform='translate(-50%,0) scale('+(0.7+0.5*qp).toFixed(2)+')';
+  }
+  // BARS internals
+  { const lt=t-2.3;
+    for(const b of document.querySelectorAll('#bars .bar')){ const f=+b.dataset.f, ph=+b.dataset.ph;
+      const h=40+310*(0.5+0.5*Math.sin(lt*6*f+ph))*Math.abs(Math.sin(lt*2.1*f+ph));
+      b.style.height=Math.max(28,h).toFixed(0)+'px'; }
+  }
+  // NUMS internals
+  { const lt=t-4.6;
+    document.querySelectorAll('#nums .ncard').forEach(c=>{ const i=+c.dataset.i; const st=0.18*i;
+      const a=ease((lt-st)/0.22); const bob=Math.sin((lt-st)*3)* (a>0.99?6:0);
+      c.style.opacity=a.toFixed(3); c.style.transform='scale('+(0.6+0.4*a).toFixed(3)+') translateY('+bob.toFixed(1)+'px)'; });
+  }
+  // PLAY internals (sweep)
+  { const lt=t-6.7, dur=1.8; const w=680-12-70; const x=6+((lt/dur)%1)*w;
+    const sw=document.getElementById('sweep'); sw.style.left=x.toFixed(0)+'px';
+  }
+  // CTA internals (glow pulse)
+  { const g=18+14*Math.abs(Math.sin((t-8.5)*2.0));
+    document.getElementById('ctaword').style.textShadow='0 0 '+g.toFixed(0)+'px rgba(255,45,138,.5)'; }
+}
+window.renderAt=renderAt;
+// URL ?t fallback (single frame) or ?play (live preview)
+(function(){ const u=new URLSearchParams(location.search);
+  if(u.has('t')){ const t=parseFloat(u.get('t'))||0; function go(){renderAt(t);} if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);} go(); }
+  else if(u.has('play')){ const t0=performance.now(); function loop(now){ let t=((now-t0)/1000)%10; renderAt(t); requestAnimationFrame(loop);} requestAnimationFrame(loop); }
+  else { renderAt(0); }
+})();
+</script>
+</body></html>
