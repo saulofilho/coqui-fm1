@@ -137,3 +137,5 @@ do projeto está em [PLAN.md](PLAN.md).
 ## Licence
 
 GPL-3.0-only. See [LICENSE](LICENSE) and [LICENSING.md](LICENSING.md).
+
+You can also try Coqui in the browser, no flashing needed, in the free community [FM-1 Emulator](https://fm1-emulator.atst.tools/).
