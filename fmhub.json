@@ -7,5 +7,5 @@
   "play": "https://saulofilho.github.io/coqui-fm1/emu/",
   "image": "docs/card.png",
   "color": "#FF2D8A",
-  "sounds": "CC0: the four factory samples in assets/samples are GR!MM's own recordings (https://github.com/GRiMMBIENT/grimm, CC0 1.0, LICENSES/CC0-1.0.txt); hub/audio is own: recorded from this firmware in host mode"
+  "sounds": "CC0: the four factory samples are from the GR!MM firmware by GRiMMBIENT, released under CC0 1.0; the recordings on the hub page are my own, recorded from this firmware"
 }
