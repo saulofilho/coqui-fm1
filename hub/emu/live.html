@@ -1,0 +1,487 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only
+     Copyright (C) 2026 COQUÍ
+     COQUÍ LIVE: the FM-1 drawn as it plays, read over its USB cable. Three things come out of it: its sound (a USB audio
+     input, FELUCCA_UAC), its notes and clock (USB-MIDI: the keys, and with SEQ MIDI OUT the steps and arps, each track
+     on its channel) and, asked for over SysEx (the editor's protocol, editor_core.js), the selected track's sound and the
+     effects. The knobs are asked for a few times a second: the FM-1 does not send them by itself. The font: Press Start
+     2P (SIL OFL 1.1). The coquí: the firmware's own cq_frog. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COQUÍ live</title>
+<link rel="icon" href="../favicon.png">
+<style>
+@font-face { font-family: "Press Start 2P"; src: url("PressStart2P-Regular.ttf") format("truetype"); font-display: block; }
+:root { --k: #0c0818; --d: #2b1d45; --m: #7d5f98; --n: #9a80b3; --l: #f2c49b; --w: #fff3e2; --a: #ff2d8a; --f: #ff9a1a;
+        --t1: #ff2d8a; --t2: #ff9a1a; --t3: #1cd8c4; --t4: #a6e82e; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--k); color: var(--l); }
+body { font: 13px/1.5 system-ui, "Segoe UI", Arial, sans-serif; }
+.px, h1, h2, h3, button, select, .lbl { font-family: "Press Start 2P", monospace; font-size: 8px; line-height: 1.6; font-weight: normal; }
+header { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; align-items: stretch; }
+header .tag { background: var(--a); color: var(--k); padding: 8px 10px; font-size: 16px; text-decoration: none; display: flex; align-items: center; }
+header .bar { flex: 1; min-width: 260px; background: var(--d); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 10px; }
+#status { color: var(--m); flex: 1; min-width: 160px; }
+#status.on { color: var(--w); }
+#status.err { color: var(--a); }
+button { background: var(--k); color: var(--w); border: 2px solid var(--m); padding: 8px 10px; cursor: pointer; }
+button:hover { border-color: var(--l); }
+button.go { background: var(--a); color: var(--k); border-color: var(--a); }
+select { background: var(--k); color: var(--w); border: 2px solid var(--m); padding: 6px; max-width: 220px; }
+.grid { display: grid; gap: 6px; padding: 0 6px 6px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.box { background: var(--d); padding: 10px; min-width: 0; }
+.box h2 { margin: 0 0 8px; color: var(--m); display: flex; justify-content: space-between; gap: 8px; }
+.box h2 b { color: var(--w); font-weight: normal; }
+canvas { display: block; width: 100%; image-rendering: pixelated; }
+#scene { aspect-ratio: 16 / 9; background: var(--k); }
+#scope { height: 90px; background: var(--k); }
+.tracks { display: grid; gap: 4px; }
+.trk { display: grid; grid-template-columns: 34px 1fr 54px; gap: 8px; align-items: center; background: var(--k); padding: 6px 8px; border-left: 6px solid var(--c); }
+.trk .led { width: 26px; height: 26px; background: var(--c); opacity: .15; transition: opacity .25s; }
+.trk .led.hit { opacity: 1; transition: none; }
+.trk .nm { color: var(--w); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.trk .en { color: var(--n); }
+.trk .nt { color: var(--c); text-align: right; }
+.trk.sel { outline: 2px solid var(--w); }
+#roll { height: 120px; background: var(--k); margin-top: 6px; }
+.steps { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; margin-top: 8px; }
+.steps i { height: 22px; background: var(--k); }
+.steps i:nth-child(4n+1) { background: #1a1130; }
+.steps i.on { background: var(--a); }
+.seqline { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+.seqline .big { font-size: 20px; color: var(--w); }
+.knobs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.knob { text-align: center; background: var(--k); padding: 6px 2px; min-width: 0; }
+.knob svg { width: 100%; max-width: 72px; height: auto; display: block; margin: 0 auto; }
+.knob .lbl { color: var(--n); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.knob .val { color: var(--w); }
+.fx { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.fx .pg { background: var(--k); padding: 6px; }
+.fx .pg .lbl { color: var(--m); margin-bottom: 4px; }
+.fx .row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+.fx .mini { height: 46px; background: var(--d); position: relative; }
+.fx .mini i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--c, var(--l)); transition: height .12s; }
+.fx .mini span { position: absolute; left: 2px; right: 2px; top: 2px; font-family: "Press Start 2P", monospace; font-size: 6px; color: var(--w); mix-blend-mode: difference; overflow: hidden; white-space: nowrap; }
+#keys { height: 80px; margin-top: 8px; }
+.hint { color: var(--n); margin: 6px 0 0; }
+.span2 { grid-column: 1 / -1; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } .fx { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<header>
+  <a class="tag px" href="../">COQUÍ</a>
+  <div class="bar">
+    <span class="px" style="font-size:12px;color:var(--w)">LIVE</span>
+    <button class="go" id="bt-midi">CONNECT FM-1</button>
+    <select id="sel-audio" title="The sound: the FM-1's USB audio input"><option value="">SOUND: OFF</option></select>
+    <button id="bt-demo" title="No FM-1? The page with a groove recorded from COQUÍ">DEMO</button>
+    <span id="status" class="px">NOT CONNECTED. CHROME OR EDGE, FM-1 ON USB.</span>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="box">
+    <h2 class="px"><span>THE SOUND</span><b id="lvl">-∞ DB</b></h2>
+    <canvas id="scene" width="480" height="270"></canvas>
+    <canvas id="scope" width="960" height="180"></canvas>
+  </div>
+
+  <div class="box">
+    <h2 class="px"><span>THE TRACKS</span><b id="midi-ch">MIDI 1-4</b></h2>
+    <div class="tracks" id="tracks"></div>
+    <canvas id="roll" width="960" height="240"></canvas>
+    <canvas id="keys" width="960" height="160"></canvas>
+  </div>
+
+  <div class="box">
+    <h2 class="px"><span>THE SEQUENCER</span><b id="run">STOPPED</b></h2>
+    <div class="seqline px"><span class="big" id="bpm">--- </span><span>BPM</span><span id="bar">BAR 1</span></div>
+    <div class="steps" id="steps"></div>
+    <p class="hint" id="clk-hint">The steps follow the FM-1's MIDI clock: SETTINGS &gt; CLOCK: INT+OUT. Steps and arps show on the tracks with SEQ MIDI OUT on.</p>
+  </div>
+
+  <div class="box">
+    <h2 class="px"><span id="snd-title">THE SELECTED TRACK</span><b id="snd-name">—</b></h2>
+    <div class="knobs" id="knobs"></div>
+    <div class="knobs" id="env" style="margin-top:6px"></div>
+  </div>
+
+  <div class="box span2">
+    <h2 class="px"><span>THE EFFECTS</span><b id="fx-st">—</b></h2>
+    <div class="fx" id="fx"></div>
+    <p class="hint">The knobs are read from the FM-1 a few times a second (it does not send them by itself), so they follow a moment late.</p>
+  </div>
+</div>
+
+<script type="module">
+import { Client, MidiTransport, VirtualFM1, findFM1, parseSound, settingsOf, FX_PAGES, OBJ, EditorError } from "./editor_core.js";
+
+const $ = (id) => document.getElementById(id);
+const TC = ["#ff2d8a", "#ff9a1a", "#1cd8c4", "#a6e82e"];
+const NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const noteName = (n) => NOTE[n % 12] + (Math.floor(n / 12) - 1);
+const say = (t, cls = "") => { $("status").textContent = t.toUpperCase(); $("status").className = "px " + cls; };
+
+// ------------------------------------------------------------------ the names (from coqui.wasm: the firmware's own)
+let vf = null, meta = null;
+(async () => {
+  try {
+    vf = await VirtualFM1.create(await (await fetch("coqui.wasm")).arrayBuffer()); meta = vf.meta(); drawKnobs();
+    if (new URLSearchParams(location.search).has("virtual")) {   // (for testing this page: the virtual FM-1's
+      client = new Client(vf);                              // sounds as the knobs, MIDI typed in by window.coquiLive)
+      window.coquiLive = { onMidi };
+      say("virtual FM-1: the knobs as COQUÍ starts (a test of this page)", "on");
+      poll();
+    }
+  }
+  catch (e) { say("could not load coqui.wasm: open this page from a web server", "err"); }
+})();
+const knobText = (s, k) => (vf ? vf.text("web_knob_text", s.eng, s.k[0], s.k[1], s.k[2], s.k[3], k) : String(s.k[k])).toUpperCase();
+const envText = (k, v) => (vf ? vf.text("web_env_text", k, v) : String(v)).toUpperCase();
+
+// ------------------------------------------------------------------ the tracks
+const trk = [0, 1, 2, 3].map((t) => ({ name: `T${t + 1}`, eng: "", on: new Map(), last: "", led: null, el: null }));
+trk.forEach((o, t) => {
+  const d = document.createElement("div");
+  d.className = "trk"; d.style.setProperty("--c", TC[t]);
+  d.innerHTML = `<div class="led"></div><div><div class="px nm">T${t + 1}</div><div class="px en">—</div></div><div class="px nt">—</div>`;
+  $("tracks").appendChild(d);
+  o.el = d, o.led = d.querySelector(".led");
+});
+function drawTrackNames() {
+  trk.forEach((o, t) => {
+    o.el.querySelector(".nm").textContent = o.name;
+    o.el.querySelector(".en").textContent = o.eng || "—";
+    o.el.classList.toggle("sel", t === selT);
+  });
+}
+
+// ------------------------------------------------------------------ MIDI in: notes, clock
+let chBase = 0;
+const roll = [];                                            // {t, n, at, end}
+const keysOn = new Map();                                   // note -> track
+let ticks = 0, running = false, lastTick = 0, bpmAvg = 0, frogHop = 0;
+function onMidi(d) {
+  const st = d[0];
+  if (st === 0xf8) {                                        // clock: 24 a beat
+    const now = performance.now();
+    if (lastTick && now - lastTick < 200) {
+      const bpm = 60000 / ((now - lastTick) * 24);
+      bpmAvg = bpmAvg ? bpmAvg * 0.94 + bpm * 0.06 : bpm;
+    }
+    lastTick = now;
+    if (running) ticks++;
+    return;
+  }
+  if (st === 0xfa) { running = true, ticks = 0; return; }
+  if (st === 0xfb) { running = true; return; }
+  if (st === 0xfc) { running = false; return; }
+  if (st < 0x80 || st >= 0xf0) return;
+  const ty = st & 0xf0, ch = st & 15, t = (ch - chBase + 16) % 16;
+  if (t > 3 || (ty !== 0x90 && ty !== 0x80)) return;
+  const n = d[1], on = ty === 0x90 && d[2] > 0, o = trk[t], now = performance.now();
+  if (on) {
+    o.on.set(n, now), o.last = noteName(n), keysOn.set(n, t);
+    roll.push({ t, n, at: now, end: 0 });
+    o.led.classList.add("hit"); setTimeout(() => o.led.classList.remove("hit"), 60);
+    o.el.querySelector(".nt").textContent = o.last;
+    frogHop = 1;
+  } else {
+    o.on.delete(n);
+    if (keysOn.get(n) === t) keysOn.delete(n);
+    for (let i = roll.length - 1; i >= 0; i--) if (roll[i].t === t && roll[i].n === n && !roll[i].end) { roll[i].end = now; break; }
+  }
+}
+
+// ------------------------------------------------------------------ the FM-1: SysEx (the selected track's sound, the effects)
+let client = null, selT = 0, polling = false;
+$("bt-midi").onclick = async () => {
+  if (!navigator.requestMIDIAccess) return say("this browser has no Web MIDI: use Chrome or Edge", "err");
+  try {
+    say("looking for the FM-1…");
+    const acc = await navigator.requestMIDIAccess({ sysex: true });
+    const fm = await findFM1(acc);
+    if (!fm) return say("no FM-1 answered: is COQUÍ on it, and the cable a data cable?", "err");
+    const tr = new MidiTransport(fm.input, fm.output);
+    const sx = fm.input.onmidimessage;
+    fm.input.onmidimessage = (e) => (e.data[0] === 0xf0 ? sx(e) : onMidi(e.data));
+    client = new Client(tr);
+    const info = await client.info();
+    try {
+      const s = settingsOf(await client.get(OBJ.SET, info.setSize));
+      chBase = s.mch < 13 ? s.mch : 0;
+      $("midi-ch").textContent = `MIDI ${chBase + 1}-${chBase + 4}`;
+      $("clk-hint").style.display = s.clk === 1 ? "none" : "";
+    } catch { /* (older: channels 1-4) */ }
+    say(`connected: ${info.firmware} on ${fm.input.name}`, "on");
+    $("bt-midi").textContent = "CONNECTED";
+    $("bt-midi").className = "";
+    if (!$("sel-audio").value) audioPick(true);
+    if (!polling) poll();
+  } catch (e) { say(e.message || String(e), "err"); }
+};
+
+async function poll() {
+  polling = true;
+  let n = 0, fails = 0;
+  while (client) {
+    try {
+      const r = await client.track(selT, true);
+      if (r.sel !== selT && r.sel < 4) { selT = r.sel; continue; }   // (the FM-1 is on another track: read that one)
+      showSound(r);
+      if (n % 4 === 0) {                                    // the other tracks' names, the effects: less often
+        for (let t = 0; t < 4; t++) if (t !== selT) {
+          const o = await client.track(t, true), s = parseSound(o.rec, meta || { fmPatches: [{ fm: [] }] });
+          trk[t].name = o.name || (meta ? `${meta.engines[s.eng].name} SOUND` : `T${t + 1}`);
+          trk[t].eng = meta ? meta.engines[s.eng].name : "";
+        }
+        showFx(await client.fx());
+      }
+      drawTrackNames();
+      n++, fails = 0;
+      $("fx-st").textContent = "LIVE";
+    } catch (e) {
+      if (++fails > 5) { $("fx-st").textContent = "NO ANSWER"; await wait(1000); }
+    }
+    await wait(90);
+  }
+  polling = false;
+}
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ------------------------------------------------------------------ knobs
+function dial(parent) {
+  const d = document.createElement("div");
+  d.className = "knob";
+  d.innerHTML = `<svg viewBox="0 0 72 64"><path d="M14 54 A26 26 0 1 1 58 54" fill="none" stroke="#2b1d45" stroke-width="8"/>
+    <path class="arc" d="M14 54 A26 26 0 1 1 58 54" fill="none" stroke="#ff2d8a" stroke-width="8" pathLength="100" stroke-dasharray="0 100"/>
+    <line class="ptr" x1="36" y1="36" x2="36" y2="16" stroke="#fff3e2" stroke-width="4"/></svg>
+    <div class="lbl">—</div><div class="px val">—</div>`;
+  parent.appendChild(d);
+  const arc = d.querySelector(".arc"), ptr = d.querySelector(".ptr");
+  return {
+    set(label, v, max, text, color) {
+      const f = max ? Math.max(0, Math.min(1, v / max)) : 0;
+      arc.setAttribute("stroke-dasharray", `${(f * 100).toFixed(1)} 100`);
+      arc.setAttribute("stroke", color);
+      ptr.setAttribute("transform", `rotate(${-135 + 270 * f} 36 36)`);
+      d.querySelector(".lbl").textContent = label;
+      d.querySelector(".val").textContent = text;
+    },
+  };
+}
+const kd = [0, 1, 2, 3].map(() => dial($("knobs"))), ed = [0, 1, 2, 3].map(() => dial($("env")));
+function drawKnobs(s = null) {
+  const c = TC[selT];
+  if (!s) {
+    kd.forEach((k, i) => k.set(["KNOB 1", "KNOB 2", "KNOB 3", "KNOB 4"][i], 0, 1, "—", c));
+    ed.forEach((k, i) => k.set(["ATTACK", "DECAY", "SUSTAIN", "RELEASE"][i], 0, 1, "—", c));
+    return;
+  }
+  const eng = meta.engines[s.eng];
+  kd.forEach((k, i) => k.set(eng.knobs[i], s.k[i], eng.max[i], knobText(s, i), c));
+  ed.forEach((k, i) => k.set(["ATTACK", "DECAY", "SUSTAIN", "RELEASE"][i], s.env[i], 127, envText(i, s.env[i]), c));
+}
+function showSound(r) {
+  if (!meta) return;
+  const s = parseSound(r.rec, meta), eng = meta.engines[s.eng].name;
+  trk[selT].name = r.name || `${eng} SOUND`, trk[selT].eng = eng;
+  $("snd-title").textContent = `T${selT + 1}: ${eng}`;
+  $("snd-title").style.color = TC[selT];
+  $("snd-name").textContent = trk[selT].name;
+  drawKnobs(s);
+}
+const fxEls = FX_PAGES.map(([page, knobs], p) => {
+  const g = document.createElement("div");
+  g.className = "pg";
+  g.innerHTML = `<div class="lbl">${page}</div><div class="row"></div>`;
+  $("fx").appendChild(g);
+  return knobs.map((k, i) => {
+    const m = document.createElement("div");
+    m.className = "mini";
+    m.style.setProperty("--c", TC[(p + i) % 4]);
+    m.innerHTML = `<i style="height:0"></i><span>${Array.isArray(k) ? k[0] : k}</span>`;
+    g.querySelector(".row").appendChild(m);
+    return { bar: m.querySelector("i"), lab: m.querySelector("span"), k };
+  });
+});
+function showFx(v) {
+  fxEls.forEach((pg, p) => pg.forEach((o, i) => {
+    const x = v[p * 4 + i];
+    if (x == null) return;
+    if (Array.isArray(o.k)) {                               // a list: its name
+      const names = o.k[1];
+      o.lab.textContent = `${o.k[0]} ${names[Math.min(x, names.length - 1)]}`;
+      o.bar.style.height = `${(100 * x) / Math.max(1, names.length - 1)}%`;
+    } else {
+      o.lab.textContent = `${o.k} ${x}`;
+      o.bar.style.height = `${(100 * x) / 127}%`;
+    }
+  }));
+}
+drawKnobs();
+
+// ------------------------------------------------------------------ the sound: the FM-1's USB audio input
+let ac = null, an = null, anL = null, anR = null, src = null, demoEl = null;
+async function audioPick(auto = false) {
+  try {
+    const first = await navigator.mediaDevices.getUserMedia({ audio: true });   // (the names only after a yes)
+    first.getTracks().forEach((t) => t.stop());
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput");
+    const sel = $("sel-audio");
+    sel.innerHTML = `<option value="">SOUND: OFF</option>`;
+    devs.forEach((d) => { const o = document.createElement("option"); o.value = d.deviceId; o.textContent = (d.label || "input").toUpperCase(); sel.appendChild(o); });
+    const fm = devs.find((d) => /felucca|fm-?1|m-?vave|coqu/i.test(d.label));
+    if (fm) { sel.value = fm.deviceId; await audioOpen(fm.deviceId); }
+    else if (!auto) say("pick the FM-1 in the SOUND list (it shows as an audio input)", "");
+  } catch (e) { say(`sound: ${e.message || e}`, "err"); }
+}
+async function audioOpen(id) {
+  stopDemo();
+  if (src) { src.mediaStream && src.mediaStream.getTracks().forEach((t) => t.stop()); src.disconnect(); src = null; }
+  if (!id) return;
+  const ms = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: id }, channelCount: 2,
+    echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  graph();
+  src = ac.createMediaStreamSource(ms);
+  src.connect(an), src.connect(split);
+}
+let split = null;
+function graph() {
+  if (ac) { if (ac.state === "suspended") ac.resume(); return; }
+  ac = new AudioContext();
+  an = ac.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0.6;
+  split = ac.createChannelSplitter(2);
+  anL = ac.createAnalyser(); anR = ac.createAnalyser(); anL.fftSize = anR.fftSize = 1024;
+  split.connect(anL, 0); split.connect(anR, 1);
+}
+$("sel-audio").onfocus = () => { if ($("sel-audio").options.length < 2) audioPick(); };
+$("sel-audio").onchange = (e) => audioOpen(e.target.value).catch((x) => say(`sound: ${x.message}`, "err"));
+$("bt-demo").onclick = () => {
+  if (demoEl) { stopDemo(); return; }
+  $("sel-audio").value = "";
+  audioOpen("");
+  graph();
+  demoEl = new Audio("../audio/band.mp3");
+  demoEl.loop = true;
+  const s = ac.createMediaElementSource(demoEl);
+  s.connect(an), s.connect(split), s.connect(ac.destination);
+  demoEl.play();
+  $("bt-demo").textContent = "STOP DEMO";
+  if (!client) say("demo: a groove recorded from COQUÍ (connect an FM-1 for the rest)", "on");
+};
+function stopDemo() { if (demoEl) { demoEl.pause(); demoEl = null; $("bt-demo").textContent = "DEMO"; } }
+
+// ------------------------------------------------------------------ drawing
+const sc = $("scene"), sx = sc.getContext("2d"), op = $("scope"), ox = op.getContext("2d");
+const rl = $("roll"), rx = rl.getContext("2d"), ky = $("keys"), kx = ky.getContext("2d");
+const FROG = ["...lll....lll...", "..lkwkl..lkwkl..", "..lkkkl..lkkkl..", ".llllllllllllll.", "llllllllllllllll",
+  "lldllllllllllldl", ".llllldlldlllll.", "..ll.llllll.ll..", ".ll...llll...ll.", "ll............ll"];
+const FC = { l: "#f2c49b", k: "#2b1d45", w: "#fff3e2", d: "#c98f6b" };
+const stars = Array.from({ length: 40 }, (_, i) => ({ x: (i * 97) % 480, y: (i * 53) % 120, p: i * 1.7 }));
+const fbuf = new Uint8Array(1024), tbuf = new Uint8Array(2048), lb = new Float32Array(1024), rb = new Float32Array(1024);
+let level = 0, peak = 0, blink = 0, hopV = 0, hopY = 0;
+const steps = Array.from({ length: 16 }, () => { const i = document.createElement("i"); $("steps").appendChild(i); return i; });
+let lastStep = -1;
+
+function rms(a) { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * a[i]; return Math.sqrt(s / a.length); }
+function frame(now) {
+  const t = now / 1000;
+  // the level
+  let l = 0, r = 0;
+  if (an) { anL.getFloatTimeDomainData(lb); anR.getFloatTimeDomainData(rb); l = rms(lb), r = rms(rb); }
+  const lv = Math.max(l, r);
+  level = Math.max(lv, level * 0.9);
+  peak = Math.max(lv, peak * 0.985);
+  const db = 20 * Math.log10(peak + 1e-9);
+  $("lvl").textContent = db < -80 ? "-∞ DB" : `${db.toFixed(1)} DB`;
+
+  // the scene: the night, the coquí, the bars
+  const W = 480, H = 270;
+  sx.fillStyle = "#0c0818"; sx.fillRect(0, 0, W, H);
+  stars.forEach((s) => { sx.globalAlpha = 0.25 + 0.6 * Math.abs(Math.sin(t * 0.8 + s.p)); sx.fillStyle = "#fff3e2"; sx.fillRect(s.x, s.y, 2, 2); });
+  sx.globalAlpha = 1;
+  sx.fillStyle = "#fff3e2"; sx.beginPath(); sx.arc(410, 46, 18, 0, 7); sx.fill();
+  sx.fillStyle = "#0c0818"; sx.beginPath(); sx.arc(402, 40, 16, 0, 7); sx.fill();
+  // the bars: the spectrum, log-spaced, in the four colours
+  const NB = 24, base = 250, bw = W / NB;
+  if (an) an.getByteFrequencyData(fbuf);
+  for (let i = 0; i < NB; i++) {
+    const a = Math.floor(2 * Math.pow(400, i / NB)), b = Math.max(a + 1, Math.floor(2 * Math.pow(400, (i + 1) / NB)));
+    let m = 0;
+    for (let j = a; j < b && j < 1024; j++) m = Math.max(m, fbuf[j]);
+    const h = an ? Math.max(2, Math.floor((m / 255) * 72 / 6) * 6) : 2 + 2 * Math.abs(Math.sin(t * 2 + i));
+    sx.fillStyle = TC[i % 4];
+    for (let y = 0; y < h; y += 6) sx.fillRect(i * bw + 3, base - y - 4, bw - 6, 4);
+  }
+  sx.fillStyle = "#2b1d45"; sx.fillRect(0, base + 2, W, H - base);
+  // the coquí: hops on a note, sings with the level, blinks
+  if (frogHop) { hopV = -5; frogHop = 0; }
+  hopV += 0.6; hopY = Math.min(0, hopY + hopV); if (hopY === 0) hopV = 0;
+  const C = 6, fx0 = (W - 16 * C) / 2, fy0 = 92 + hopY, sing = Math.min(1, level * 6);
+  FROG.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== ".") { sx.fillStyle = FC[ch]; sx.fillRect(fx0 + x * C, fy0 + y * C, C, C); } }));
+  if ((t % 3.1) < 0.12) { sx.fillStyle = FC.l; sx.fillRect(fx0 + 2 * C, fy0 + C, 5 * C, 2 * C); sx.fillRect(fx0 + 9 * C, fy0 + C, 5 * C, 2 * C); }
+  if (sing > 0.08) {
+    sx.fillStyle = "#2b1d45";
+    const mw = 3 + Math.round(sing * 3), mh = 1 + Math.round(sing * 2);
+    sx.fillRect(fx0 + (8 - mw / 2) * C, fy0 + 5.5 * C, mw * C, mh * C * 0.8);
+    sx.globalAlpha = Math.min(1, sing * 1.5);
+    sx.fillStyle = "#ff2d8a"; sx.font = "10px 'Press Start 2P'"; sx.textAlign = "center";
+    sx.fillText(sing > 0.5 ? "QUÍ!" : "CO", W / 2, fy0 - 12);
+    sx.globalAlpha = 1;
+  }
+  // the scope
+  const OW = 960, OH = 180;
+  ox.fillStyle = "#0c0818"; ox.fillRect(0, 0, OW, OH);
+  ox.strokeStyle = "#2b1d45"; ox.lineWidth = 2; ox.beginPath(); ox.moveTo(0, OH / 2); ox.lineTo(OW, OH / 2); ox.stroke();
+  if (an) {
+    an.getByteTimeDomainData(tbuf);
+    let z = 0;
+    for (let i = 1; i < 1024; i++) if (tbuf[i - 1] < 128 && tbuf[i] >= 128) { z = i; break; }   // (still: on a rising edge)
+    ox.strokeStyle = "#1cd8c4"; ox.lineWidth = 3; ox.beginPath();
+    for (let i = 0; i < 1024; i++) { const x = (i / 1023) * OW, y = OH / 2 + ((tbuf[z + i] - 128) / 128) * (OH / 2 - 6); i ? ox.lineTo(x, y) : ox.moveTo(x, y); }
+    ox.stroke();
+  }
+  // L / R meters
+  [[l, 0], [r, 1]].forEach(([v, k]) => { const w = Math.min(1, v * 4) * 120; ox.fillStyle = "#2b1d45"; ox.fillRect(OW - 132, 8 + k * 14, 120, 8); ox.fillStyle = v > 0.22 ? "#ff2d8a" : "#a6e82e"; ox.fillRect(OW - 132, 8 + k * 14, w, 8); });
+
+  // the roll: the last 4 seconds, a lane a track
+  const RW = 960, RH = 240, span = 4000, lane = RH / 4;
+  rx.fillStyle = "#0c0818"; rx.fillRect(0, 0, RW, RH);
+  for (let k = 1; k < 4; k++) { rx.fillStyle = "#2b1d45"; rx.fillRect(0, k * lane, RW, 2); }
+  while (roll.length && roll[0].end && now - roll[0].end > span) roll.shift();
+  if (roll.length > 400) roll.splice(0, roll.length - 400);
+  roll.forEach((e) => {
+    const x0 = RW - ((now - e.at) / span) * RW, x1 = e.end ? RW - ((now - e.end) / span) * RW : RW;
+    const y = e.t * lane + lane - 6 - (((e.n - 36) % 48 + 48) % 48) / 48 * (lane - 12);
+    rx.fillStyle = TC[e.t]; rx.fillRect(x0, y - 3, Math.max(4, x1 - x0), 6);
+  });
+
+  // the keys: F3 .. G5, as the FM-1's 27
+  const KW = 960, KH = 160, lo = 53, hi = 79, whites = [];
+  for (let n = lo; n <= hi; n++) if (![1, 3, 6, 8, 10].includes(n % 12)) whites.push(n);
+  const ww = KW / whites.length;
+  kx.fillStyle = "#0c0818"; kx.fillRect(0, 0, KW, KH);
+  whites.forEach((n, i) => { const t = keysOn.get(n); kx.fillStyle = t != null ? TC[t] : "#fff3e2"; kx.fillRect(i * ww + 2, 0, ww - 4, KH); });
+  whites.forEach((n, i) => {
+    if (n + 1 > hi || ![1, 3, 6, 8, 10].includes((n + 1) % 12)) return;
+    const t = keysOn.get(n + 1); kx.fillStyle = t != null ? TC[t] : "#2b1d45"; kx.fillRect((i + 1) * ww - ww * 0.3, 0, ww * 0.6, KH * 0.6);
+  });
+  [...keysOn.keys()].filter((n) => n < lo || n > hi).length && (kx.fillStyle = "#ff9a1a", kx.font = "14px 'Press Start 2P'", kx.textAlign = "left", kx.fillText("+ OUT OF RANGE", 8, KH - 10));
+
+  // the sequencer
+  if (lastTick && now - lastTick > 600) { bpmAvg = 0; }
+  $("bpm").textContent = bpmAvg ? Math.round(bpmAvg).toString() : "---";
+  $("run").textContent = running ? "PLAYING" : "STOPPED";
+  const s = running ? Math.floor(ticks / 6) % 16 : -1;
+  if (s !== lastStep) { steps.forEach((e, i) => e.classList.toggle("on", i === s)); lastStep = s; }
+  $("bar").textContent = `BAR ${running ? Math.floor(ticks / 96) + 1 : 1}`;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

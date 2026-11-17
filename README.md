@@ -12,7 +12,7 @@ with a HUMAN knob that loosens the hand.
 
 ![COQUÍ running on an M-VAVE FM-1](docs/fm1-device.jpg)
 
-**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed) · **[The editor](https://saulofilho.github.io/coqui-fm1/emu/editor.html)** (sounds, sequencer, samples, backup over USB)
+**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed) · **[The editor](https://saulofilho.github.io/coqui-fm1/emu/editor.html)** (sounds, sequencer, samples, backup over USB) · **[Live view](https://saulofilho.github.io/coqui-fm1/emu/live.html)** (your FM-1 drawn as it plays: its sound, notes, clock and knobs, over USB)
 
 **Beginner's guide (PDF):** [English](docs/coqui-first-guide.pdf) · [Português](docs/coqui-guia-iniciante.pdf) — the controls, presets and rhythms, step by step.
 
