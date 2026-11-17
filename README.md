@@ -4,15 +4,16 @@
 congas, bongos, timbales, güiro, clave and cowbell, all synthesized on the FM-1, played by hand or by the sequencer,
 with a HUMAN knob that loosens the hand.
 
-> **Version 1.1.** A welcome scene out of the box (the **DEMO** action on the PROJECTS page) and a COQUÍ sound as the
-> default, over 1.0. Tested on a real FM-1: installed from the official V15 and from another firmware, left again, an
+> **Version 1.1.1, [on the FM-1 Firmware Hub](https://thefirmwarehub.com/firmware/coqui/)**: install it from the
+> browser in a minute. A welcome scene out of the box (the **DEMO** action on the PROJECTS page) and a COQUÍ sound as
+> the default, over 1.0. Tested on a real FM-1: installed from the official V15 and from another firmware, left again, an
 > interrupted update resumed ([the results](docs/TEST-RESULTS-1.0.md)). Unofficial: install at your own risk.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
 
 ![COQUÍ running on an M-VAVE FM-1](docs/fm1-device.jpg)
 
-**[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed) · **[The editor](https://saulofilho.github.io/coqui-fm1/emu/editor.html)** (sounds, sequencer, samples, backup over USB) · **[Live view](https://saulofilho.github.io/coqui-fm1/emu/live.html)** (your FM-1 drawn as it plays: its sound, notes, clock and knobs, over USB)
+**[Install from the Firmware Hub](https://thefirmwarehub.com/firmware/coqui/)** · **[The COQUÍ hub](https://saulofilho.github.io/coqui-fm1/)**: hear every style, play the kit, install · **[Try it in your browser](https://saulofilho.github.io/coqui-fm1/emu/)** (the real firmware, no FM-1 needed) · **[The editor](https://saulofilho.github.io/coqui-fm1/emu/editor.html)** (sounds, sequencer, samples, backup over USB) · **[Live view](https://saulofilho.github.io/coqui-fm1/emu/live.html)** (your FM-1 drawn as it plays: its sound, notes, clock and knobs, over USB)
 
 **Beginner's guide (PDF):** [English](docs/coqui-first-guide.pdf) · [Português](docs/coqui-guia-iniciante.pdf) — the controls, presets and rhythms, step by step.
 
@@ -69,12 +70,15 @@ MIDI: notes 53 (F3) to 79 (G5) as above; notes outside fold in by two octaves.
 
 ## Install
 
-COQUÍ is not on the Firmware Hub yet. Download the latest `coqui-X.Y.fwsc` from
+**The easy way:** open [COQUÍ on the FM-1 Firmware Hub](https://thefirmwarehub.com/firmware/coqui/) in Chrome or
+Edge, plug in the FM-1 over USB and press **Install**. No account, nothing to download.
+
+**From a terminal:** download the latest `coqui-X.Y.fwsc` from
 [Releases](https://github.com/saulofilho/coqui-fm1/releases) (built, tested and signed by GitHub), then install it
 (Python 3, `pip install mido python-rtmidi`):
 
 ```
-python3 tools/fm1_install.py coqui-1.1.fwsc
+python3 tools/fm1_install.py coqui-1.1.1.fwsc
 ```
 
 Or use any FM-1 web installer that takes a `.fwsc` file, in Chrome or Edge. COQUÍ keeps its own saves: it does not
@@ -131,7 +135,8 @@ COQUÍ stands on other people's open work; details and licence texts in [LICENSI
 ## Em português
 
 COQUÍ é um firmware de groovebox com ritmos latinos e caribenhos (salsa, bomba, plena, perreo, merengue, cumbia) para
-o M-VAVE FM-1: congas, bongôs, timbales, güiro, clave e cowbell sintetizados, com o knob HUMAN para dar balanço. O plano
+o M-VAVE FM-1: congas, bongôs, timbales, güiro, clave e cowbell sintetizados, com o knob HUMAN para dar balanço. Instale pelo
+[FM-1 Firmware Hub](https://thefirmwarehub.com/firmware/coqui/), direto do navegador. O plano
 do projeto está em [PLAN.md](PLAN.md).
 
 ## Licence

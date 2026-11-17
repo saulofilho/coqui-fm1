@@ -1,5 +1,8 @@
 # E-mail para o FM-1 Firmware Hub (rascunho)
 
+> **Enviado e aceito:** o COQUÍ está no hub desde 2026-11-07, em <https://thefirmwarehub.com/firmware/coqui/>. Fica
+> aqui como registro.
+
 Mandar só depois do roteiro `docs/TESTE-FM1.md` (Parte A toda ✅) e do release 1.0 publicado no GitHub. O Hub pede, por
 e-mail: o nome do firmware, o nome do autor como deve aparecer, o link do repositório, a identidade `FM-1_`, a licença
 e a declaração de que foi testado num FM-1 de verdade. Texto, imagem e links vão no `fmhub.json` (já está no repo), não
