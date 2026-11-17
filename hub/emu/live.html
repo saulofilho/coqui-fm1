@@ -221,7 +221,9 @@ $("bt-midi").onclick = async () => {
     $("bt-midi").className = "";
     if (!$("sel-audio").value) audioPick(true);
     if (!polling) poll();
-  } catch (e) { say(e.message || String(e), "err"); }
+  } catch (e) {
+    say(/permission|not allowed|denied/i.test(e.message || "") ? "MIDI was not allowed: allow MIDI (with SysEx) for this page in the browser's site settings, then CONNECT again" : (e.message || String(e)), "err");
+  }
 };
 
 async function poll() {
