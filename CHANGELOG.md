@@ -1,6 +1,8 @@
 # COQUÍ changelog
 
-## Unreleased
+## 1.1.2
+
+A fix for PERC.
 
 - **PERC: a long hit always ends.** A long decay (the BOOM, the timbales, the tambora, the open hat, the long güiro,
   most with DECAY toward x4; PERREO's BOOM even at x1) stopped just above its end and kept sounding, silent but

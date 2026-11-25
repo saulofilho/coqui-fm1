@@ -49,7 +49,7 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    clave 2-3 de 2 compassos, com o peso da posição. AMBIENTE (`amb.c`, última página do FX): cenas SECO, QUINTAL, CALLE,
    PLAYA, NOCHE, DUB, RADIO AM sobre os efeitos que já existem (sem DSP nem pool novos). HOME: céu, lua, o coquí que
    canta e dorme, uma conga com chama neon por track. Teste `gen_clave_test.py`.
-6. ✅ **Publicação (teste no FM-1 feito 2026-11-06: `docs/TEST-RESULTS-1.0.md`, em inglês; **no FM-1 Firmware Hub desde 2026-11-07:** <https://thefirmwarehub.com/firmware/coqui/>, hoje com a 1.1.1):** `.github/workflows/release.yml` (tag `vX.Y` →
+6. ✅ **Publicação (teste no FM-1 feito 2026-11-06: `docs/TEST-RESULTS-1.0.md`, em inglês; **no FM-1 Firmware Hub desde 2026-11-07:** <https://thefirmwarehub.com/firmware/coqui/>, hoje com a 1.1.2):** `.github/workflows/release.yml` (tag `vX.Y` →
    o GitHub compila, roda os 18 testes, assina e publica com `zvenson/fm1-build@v1`; simulado num clone limpo),
    `tools/prep_release.sh X.Y` (versão, card, telas, emulador, hub), `fmhub.json` final (com o emulador em `play`),
    `CHANGELOG.md`, roteiro `docs/TESTE-FM1.md` (exigências do Hub + o COQUÍ + CPU) e e-mail `docs/HUB-EMAIL.md`. As
@@ -57,7 +57,7 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    físico → `tools/prep_release.sh 1.0` → tag `v1.0` → e-mail ao Hub → listado (o `sounds` do `fmhub.json` foi o
    último item que o verificador pediu).
 
-## Correções depois da 1.1.1
+## Correções depois da 1.1.1 (saíram na 1.1.2)
 
 - **PERC: decaimento longo parava acima do fim (2026-11-25).** Em `perc_block` cada amplitude desce `mulq16(a, k)`;
   com `a × k < 65536` isso arredonda para 0 com `a` ainda acima do corte de 256, e o golpe soava para sempre (inaudível,

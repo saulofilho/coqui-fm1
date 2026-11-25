@@ -4,9 +4,9 @@
 congas, bongos, timbales, güiro, clave and cowbell, all synthesized on the FM-1, played by hand or by the sequencer,
 with a HUMAN knob that loosens the hand.
 
-> **Version 1.1.1, [on the FM-1 Firmware Hub](https://thefirmwarehub.com/firmware/coqui/)**: install it from the
+> **Version 1.1.2, [on the FM-1 Firmware Hub](https://thefirmwarehub.com/firmware/coqui/)**: install it from the
 > browser in a minute. A welcome scene out of the box (the **DEMO** action on the PROJECTS page) and a COQUÍ sound as
-> the default, over 1.0. Tested on a real FM-1: installed from the official V15 and from another firmware, left again, an
+> the default, over 1.0; in 1.1.2, every PERC hit ends, even at DECAY x4. Tested on a real FM-1: installed from the official V15 and from another firmware, left again, an
 > interrupted update resumed ([the results](docs/TEST-RESULTS-1.0.md)). Unofficial: install at your own risk.
 
 ![COQUÍ's boot screen: the coquí sings under the moon](docs/screens/boot.png)
@@ -78,7 +78,7 @@ Edge, plug in the FM-1 over USB and press **Install**. No account, nothing to do
 (Python 3, `pip install mido python-rtmidi`):
 
 ```
-python3 tools/fm1_install.py coqui-1.1.1.fwsc
+python3 tools/fm1_install.py coqui-1.1.2.fwsc
 ```
 
 Or use any FM-1 web installer that takes a `.fwsc` file, in Chrome or Edge. COQUÍ keeps its own saves: it does not
