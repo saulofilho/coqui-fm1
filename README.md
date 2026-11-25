@@ -39,7 +39,7 @@ Based on [GR!MM](https://github.com/GRiMMBIENT/grimm) 2.0.2 (see [Credits](#cred
 - **10 factory kits**, each with its groove: SALSA DURA, PERREO 2004, BOMBA SICA, PLENA CALLE, MERENGUE, CUMBIA, MAMBO,
   BACHATA, DEMBOW, BARRIL LENTO
 - **PERC plays its own hits**: up to 10 at once, never taking the six voices the bass and keys tracks share; a drum
-  struck again cuts itself, like a hand on the skin
+  struck again cuts itself, like a hand on the skin; every hit ends in its time, even at DECAY x4
 - From GR!MM: 4 tracks, six more sources (VA, FM, SAMPLE, WHEEL, PHYS, PHASE), a 64-step sequencer per track with
   swing, chance and ratchets, song mode, arpeggiator, one-key chords, GENERATE, tape, grain, delay and reverb, MIDI in
   and out, MIDI clock, autosave

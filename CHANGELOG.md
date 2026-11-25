@@ -1,5 +1,13 @@
 # COQUÍ changelog
 
+## Unreleased
+
+- **PERC: a long hit always ends.** A long decay (the BOOM, the timbales, the tambora, the open hat, the long güiro,
+  most with DECAY toward x4; PERREO's BOOM even at x1) stopped just above its end and kept sounding, silent but
+  holding one of the ten hits for good. Every decay now falls at least one step at a time, so it reaches the end;
+  nothing heard changes. The PERC test now plays every key alone on every KIT at x1 and at x4 and checks each ends in
+  its own time.
+
 ## 1.1
 
 A welcome out of the box, so a new FM-1 feels like COQUÍ from the first press.

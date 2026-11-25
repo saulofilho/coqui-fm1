@@ -57,6 +57,19 @@ Groovebox de ritmos latinos e caribenhos para o M-VAVE FM-1. Fork do
    físico → `tools/prep_release.sh 1.0` → tag `v1.0` → e-mail ao Hub → listado (o `sounds` do `fmhub.json` foi o
    último item que o verificador pediu).
 
+## Correções depois da 1.1.1
+
+- **PERC: decaimento longo parava acima do fim (2026-11-25).** Em `perc_block` cada amplitude desce `mulq16(a, k)`;
+  com `a × k < 65536` isso arredonda para 0 com `a` ainda acima do corte de 256, e o golpe soava para sempre (inaudível,
+  mas ocupando um dos 10 golpes). Pegava BOOM, TIMBAL, TAMBORA, OPEN HAT e o GÜIRO longo com DECAY perto de x4, e o
+  BOOM do kit PERREO já em x1. Correção igual à do RIDDIM (`dh_dec` no `drum.c`): `ph_dec` desce ao menos 1 por passo,
+  no tom, no ruído, no rabo do clap e no do güiro (as rajadas do clap, k 7000, e o fim do güiro, k 3000, não travavam:
+  só abaixo de 10 e 22). O `pe` (queda do pitch) fica como está: não decide o fim. `tests/perc/perc_test.c`: cada
+  tecla sozinha (o pool zerado antes), em cada KIT, em DECAY x1 e x4, tem de acabar no seu tempo (o decaimento mais
+  longo até 96 dB, + 5 % + 100 ms; o güiro: o comprimento + 200 ms), render até 30 s. Antes: 26 falhas; depois passa
+  (o mais longo: PERREO BOOM em x4, 13,6 s). Um limite fixo de 2,5 s, como no RIDDIM, não serve aqui: o PERREO BOOM
+  em x1 soa ~3,8 s de verdade.
+
 ## Orçamento (GR!MM 2.0.2 sem mudanças, medido em 2026-11-05)
 
 | Recurso | Usado | Limite | Livre |

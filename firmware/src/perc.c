@@ -142,6 +142,13 @@ static uint32_t ph_k(uint32_t ms, uint32_t dmul)
     return k > 52429u ? 52429u : k ? k : 1u;
 }
 
+static int32_t ph_dec(int32_t a, uint32_t k)    /* a decay's step: at least 1 while it sounds (the longest ones, at a
+                                                 * high DECAY, would round to 0 just over the end and ring for ever) */
+{
+    int32_t d = mulq16(a, k);
+    return d ? d : a > 0;
+}
+
 /* audio: track t's note struck, at vel (Q8, 0: full) */
 static void perc_hit(uint32_t t, uint32_t note, uint32_t vel)
 {
@@ -212,16 +219,16 @@ static void perc_block(int32_t (*tb)[VB], uint32_t b, uint32_t n, uint32_t *used
         ta0 = h->ta, na0 = h->na;
         if (h->kill) ta1 = na1 = 0;             /* (cut: out this step) */
         else {
-            ta1 = ta0 - mulq16(ta0, h->kt);
+            ta1 = ta0 - ph_dec(ta0, h->kt);
             if (h->sp == PS_CLAP) {             /* three bursts, then its tail */
                 if (h->cnt == PH_CLAP_GAP || h->cnt == 2u * PH_CLAP_GAP) na0 = h->npk * 7 / 8;
-                na1 = na0 - mulq16(na0, h->cnt < 2u * PH_CLAP_GAP ? 7000u : h->kn);
+                na1 = na0 - ph_dec(na0, h->cnt < 2u * PH_CLAP_GAP ? 7000u : h->kn);
             } else if (h->sp == PS_GUIRO)       /* held for its length, then out in ~15 ms */
-                na1 = h->cnt < h->gate ? na0 : na0 - mulq16(na0, 3000u);
+                na1 = h->cnt < h->gate ? na0 : na0 - ph_dec(na0, 3000u);
             else if (h->sp == PS_SOFT && h->cnt < 6u)   /* a soft start: up in ~4 ms */
                 na1 = h->npk / 6 * (int32_t)(h->cnt + 1u);
             else
-                na1 = na0 - mulq16(na0, h->kn);
+                na1 = na0 - ph_dec(na0, h->kn);
         }
         h->cnt++;
         h->pe -= mulq16(h->pe, h->kp);

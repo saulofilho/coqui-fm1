@@ -53,14 +53,17 @@ static uint32_t wn;
 static int fails;
 static void check(int ok, const char *what) { if (!ok) { printf("  FAIL  %s\n", what); fails++; } }
 
-/* one hit of key k on track 0, rendered till it ends (at most 3 s): its peak, RMS over its first 100 ms, length (ms) */
+/* one hit of key k on track 0, alone (the pool emptied first), rendered till it ends (at most 30 s): its peak, RMS over
+ * its first 100 ms, length (ms) */
+#define ONE_MAX_S 30u
 static void one(uint32_t k, int32_t *pk, int32_t *rms, uint32_t *len, int keep)
 {
     uint32_t b, i, used, frames = 0;
     int64_t ss = 0;
     *pk = 0;
+    memset(ph_, 0, sizeof ph_);
     perc_hit(0, 53 + k, 0);
-    for (b = 0; b < 3u * 44100u / VB && perc_busy(); b++) {
+    for (b = 0; b < ONE_MAX_S * 44100u / VB && perc_busy(); b++) {
         uint32_t c;
         used = 0;
         for (c = 0; c < VB; c += CTL) perc_block(tb, c, VB, &used);
@@ -75,6 +78,22 @@ static void one(uint32_t k, int32_t *pk, int32_t *rms, uint32_t *len, int keep)
     *rms = 0;
     { int64_t m = ss / 4410; int32_t r = 0; while ((int64_t)(r + 1) * (r + 1) <= m) r++; *rms = r; }
     *len = frames * 1000u / 44100u;
+}
+/* how long key k may ring on KIT kit at the track's DECAY (ms): its longest decay (the tone's or the noise's, x DECAY,
+ * x the KIT's) to the end's 256 (96 dB under the peak: 1.6 x its 60 dB), 5 % for ph_k's rounding, 100 ms over (the
+ * clap's bursts); the güiro: its length, then its fall to 256 (~170 ms, mostly unheard), 200 ms over. A decay that
+ * stalls over the end (a x k rounding to 0) runs to the render's limit, far past this */
+static uint32_t ring_ms(uint32_t kit, uint32_t k)
+{
+    const pinst_t *I = &PINST[PKEY[k].i];
+    double d = (double)(pow2_q16(clamp(trk[0].p[ENG_PERC][2], 0, 127) * 6) >> 2) / 65536.0, tm = d, nm = d, t;
+    if (I->cls == PC_HAND) tm *= PKIT[kit].hd / 256.0;
+    if (I->cls == PC_KICK) tm *= PKIT[kit].kd / 256.0;
+    if (I->cls == PC_SNARE) tm *= PKIT[kit].sd / 256.0, nm *= PKIT[kit].sd / 256.0;
+    if (I->sp == PS_GUIRO) return (uint32_t)(I->ndec * nm) + 200u;
+    t = (I->p16 ? I->tdec * tm : 0.0);
+    if (I->ndec * nm > t) t = I->ndec * nm;
+    return (uint32_t)(t * 1.6 * 1.05) + 100u;
 }
 static void wav_write(const char *fn)
 {
@@ -102,8 +121,26 @@ int main(int argc, char **argv)
                    pk ? 20.0 * __builtin_log10(pk / 32767.0) : -99.0, rms ? 20.0 * __builtin_log10(rms / 32767.0) : -99.0, len);
             snprintf(w, sizeof w, "%s %s: under full scale", KIT_NAME[kit], PKEY_NAME[k]); check(pk < 32767, w);
             snprintf(w, sizeof w, "%s %s: heard", KIT_NAME[kit], PKEY_NAME[k]); check(pk > 1000, w);
-            snprintf(w, sizeof w, "%s %s: ends within 3 s", KIT_NAME[kit], PKEY_NAME[k]); check(len < 3000u, w);
+            snprintf(w, sizeof w, "%s %s: ends in its time", KIT_NAME[kit], PKEY_NAME[k]); check(len < ring_ms(kit, k), w);
         }
+    }
+    {   /* DECAY x4 (127): every key on every KIT still ends in its time; the longest decays' steps would round to 0 just
+         * over the end (a x k < 65536 with a still over 256) and ring for ever, holding a slot of the pool */
+        uint32_t most = 0, mk = 0, mkit = 0;
+        trk[0].p[ENG_PERC][2] = 127;
+        for (kit = 0; kit < NKIT; kit++) {
+            trk[0].p[ENG_PERC][0] = (int32_t)kit;
+            for (k = 0; k < PK_N; k++) {
+                int32_t pk, rms; uint32_t len;
+                char w[64];
+                one(k, &pk, &rms, &len, 0);
+                if (len > most) most = len, mk = k, mkit = kit;
+                snprintf(w, sizeof w, "%s %s: ends in its time at DECAY x4", KIT_NAME[kit], PKEY_NAME[k]);
+                check(len < ring_ms(kit, k), w);
+            }
+        }
+        printf("DECAY x4: the longest %s %s, %u ms\n", KIT_NAME[mkit], PKEY_NAME[mk], most);
+        trk[0].p[ENG_PERC][2] = 64;
     }
     {   /* the cost: the pool full (NPH hits, all long ones), 2000 blocks */
         uint32_t b, c, used; clock_t t0;
